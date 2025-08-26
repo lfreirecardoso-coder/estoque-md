@@ -15,12 +15,9 @@ const firebaseConfig = {
   const scripts = [
     "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js",
     "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js",
-    "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js",
-    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js",
+    "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js" // Storage no final para depender dos outros
   ];
-
-  let loaded = 0;
-  const total = scripts.length;
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -34,30 +31,23 @@ const firebaseConfig = {
     });
   }
 
-  function initializeFirebase() {
-    try {
-      firebase.initializeApp(firebaseConfig);
-      const storage = firebase.app().storage("gs://estoque--md.firebasestorage.app");
-      window.firebase = firebase;
-      window.auth = firebase.auth();
-      window.db = firebase.firestore();
-      window.storage = storage;
-      console.log("Firebase inicializado com sucesso");
-      window.dispatchEvent(new Event('firebase-ready'));
-    } catch (e) {
-      console.error("Erro ao inicializar Firebase:", e);
-    }
-  }
-
-  scripts.forEach(src => {
-    loadScript(src).then(() => {
-      loaded++;
-      if (loaded === total) {
-        console.log("Todos os scripts carregados, inicializando Firebase...");
-        initializeFirebase();
+  Promise.all(scripts.map(loadScript))
+    .then(() => {
+      console.log("Todos os scripts do Firebase foram carregados");
+      try {
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.app().storage("gs://estoque--md.firebasestorage.app");
+        window.firebase = firebase;
+        window.auth = firebase.auth();
+        window.db = firebase.firestore();
+        window.storage = storage;
+        console.log("Firebase inicializado com sucesso");
+        window.dispatchEvent(new Event('firebase-ready'));
+      } catch (e) {
+        console.error("Erro ao inicializar Firebase:", e);
       }
-    }).catch(error => {
-      console.error("Erro ao carregar scripts:", error);
+    })
+    .catch(error => {
+      console.error("Erro ao carregar scripts do Firebase:", error);
     });
-  });
 })();
