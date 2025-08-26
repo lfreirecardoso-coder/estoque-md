@@ -13,12 +13,12 @@
     </div>
 
     <nav class="nav">
-      <a href="dashboard.html">Gestão de Estoque</a>
-      <a href="novo.html">Cadastro de Estoque</a>
-      <a href="cadastro_base.html">Cadastro Base</a>
-      <a href="rel.html">Relatórios</a>     
-      <a href="admin_users.html">Cadastro de Usuários</a> 
-      <a href="mov.html">Log de Movimentações</a>
+      <a href="dashboard.html"><span>Gestão de Estoque</span></a>
+      <a href="novo.html"><span>Cadastro de Estoque</span></a>
+      <a href="cadastro_base.html"><span>Cadastro Base</span></a>
+      <a href="rel.html"><span>Relatórios</span></a>     
+      <a href="admin_users.html"><span>Cadastro de Usuários</span></a> 
+      <a href="mov.html"><span>Log de Movimentações</span></a>
     </nav>
 
     <div class="bottom">
@@ -89,9 +89,12 @@
   if (toggleBtn && sidebar) {
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('sidebar-collapsed');
+      sidebar.classList.toggle('sidebar-expanded');
       if (sidebar.classList.contains('sidebar-collapsed')) {
+        content.classList.remove('sidebar-expanded');
         content.style.marginLeft = '60px';
       } else {
+        content.classList.add('sidebar-expanded');
         content.style.marginLeft = '280px';
       }
     });
