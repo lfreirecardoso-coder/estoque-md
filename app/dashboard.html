@@ -244,6 +244,7 @@
     function n(v) { return typeof v === 'number' ? v : (Number(v) || 0); }
     // Render da tabela com filtros
     function render() {
+      console.log("Renderizando tabela com", ITENS_CACHE.length, "itens");
       const qNome = fNome.value.trim().toLowerCase();
       const qCat = fCategoria.value.trim().toLowerCase();
       const qLoc = fLocal.value.trim().toLowerCase();
