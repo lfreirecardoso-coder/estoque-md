@@ -4,38 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estoque -MD-</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="stylesheet" href="login.css">
 </head>
 <body class="login-body">
-  <div class="login-container">
-    <div class="brand">
-      <img src="logo.png" alt="Logo Ministério Deuteronômion" class="brand-logo-large">
-      <h1 class="brand-title">Estoque -MD-</h1>
+  <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="login-container">
+      <div class="brand text-center mb-4">
+        <img src="logo.png" alt="Logo Ministério Deuteronômion" class="brand-logo-large img-fluid">
+        <h1 class="brand-title">Estoque -MD-</h1>
+      </div>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="page-title text-center mb-4">Entrar</h2>
+          <form id="formLogin">
+            <div class="field mb-3">
+              <label for="lEmail" class="form-label">E-mail</label>
+              <input type="email" id="lEmail" class="form-control" placeholder="Seu e-mail" required>
+            </div>
+            <div class="field mb-3">
+              <label for="lSenha" class="form-label">Senha</label>
+              <input type="password" id="lSenha" class="form-control" placeholder="Sua senha" required>
+            </div>
+            <div class="card__actions d-flex flex-column align-items-center">
+              <button type="submit" class="btn w-100 mb-2">Entrar</button>
+              <span id="lMsg" class="muted text-center"></span>
+            </div>
+          </form>
+          <a href="reset.html" class="muted d-block text-center mt-3">Esqueci minha senha</a>
+        </div>
+      </div>
+      <footer class="muted text-center mt-4">
+        2025 © | Ministério Deuteronômion<br>
+        Não tem mais volta...
+      </footer>
     </div>
-    <div class="card">
-      <h2 class="page-title">Entrar</h2>
-      <form id="formLogin">
-        <div class="field">
-          <label for="lEmail">E-mail</label>
-          <input type="email" id="lEmail" placeholder="Seu e-mail" required>
-        </div>
-        <div class="field">
-          <label for="lSenha">Senha</label>
-          <input type="password" id="lSenha" placeholder="Sua senha" required>
-        </div>
-        <div class="card__actions">
-          <button type="submit" class="btn">Entrar</button>
-          <span id="lMsg" class="muted"></span>
-        </div>
-      </form>
-      <a href="reset.html" class="muted">Esqueci minha senha</a>
-    </div>
-    <footer class="muted">
-      2025 © | Ministério Deuteronômion<br>
-      <p>
-      Não tem mais volta...
-    </footer>
   </div>
+  <!-- Bootstrap 5 JS (opcional, para componentes interativos) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   <script src="firebase.js"></script>
   <script src="login.js"></script>
 </body>
