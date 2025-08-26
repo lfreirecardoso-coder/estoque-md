@@ -226,6 +226,14 @@
     let ITENS_CACHE = [];
     let MOV_ITEM = null; // item alvo da movimentação
     let MOV_TIPO = 'entrada';
+
+    // Teste com dados fictícios
+    ITENS_CACHE = [
+      { id: "1", nome: "Fio 10", categoria: "Elétrica", qtd: 50, unidade: "m", local: "Caixa A", imageUrl: "sem-imagem.png" },
+      { id: "2", nome: "Tomada", categoria: "Elétrica", qtd: 20, unidade: "un", local: "Depósito", imageUrl: "sem-imagem.png" }
+    ];
+    render();
+
     function openImg(url) {
       bigImg.src = url || '';
       modalImg.classList.add('open');
@@ -353,10 +361,11 @@
     [fNome, fCategoria, fLocal].forEach(el => el.addEventListener('input', render));
     // Watch itens em tempo real
     function watchItens() {
+      console.log("Iniciando watchItens");
       db.collection('itens').orderBy('nome').onSnapshot(snap => {
         ITENS_CACHE = [];
         snap.forEach(doc => ITENS_CACHE.push({ id: doc.id, ...doc.data() }));
-        console.log("Itens carregados:", ITENS_CACHE.length);
+        console.log("Itens carregados:", ITENS_CACHE.length, ITENS_CACHE);
         render();
       }, err => {
         console.error('Erro ao carregar itens:', err);
@@ -367,6 +376,7 @@
     window.addEventListener('firebase-ready', () => {
       console.log("Firebase-ready disparado");
       auth.onAuthStateChanged(u => {
+        console.log("Usuário:", u ? u.email : "Não autenticado");
         if (!u) { location.href = 'login.html'; return; }
         console.log("Usuário autenticado, iniciando watchItens");
         watchItens();
