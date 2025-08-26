@@ -1,84 +1,56 @@
-// login.js - Lógica para login e reset
-function setupAuth() {
-  console.log('Tentando configurar autenticação...');
+// login.js - Lógica de autenticação para a tela de login
 
-  // Verifica se o firebase está disponível
-  if (typeof firebase === 'undefined' || !firebase.auth) {
-    console.error('Firebase não inicializado! Aguardando...');
-    setTimeout(setupAuth, 500); // Tenta novamente após 500ms
+// Aguarda o evento 'firebase-ready' para garantir que o Firebase esteja inicializado
+window.addEventListener('firebase-ready', () => {
+  console.log("Firebase pronto para login"); // Log de depuração
+  const formLogin = document.getElementById('formLogin');
+  const lEmail = document.getElementById('lEmail');
+  const lSenha = document.getElementById('lSenha');
+  const lMsg = document.getElementById('lMsg');
+
+  if (!formLogin || !lEmail || !lSenha || !lMsg) {
+    console.error("Elementos do formulário não encontrados:", { formLogin, lEmail, lSenha, lMsg });
     return;
   }
 
-  console.log('Firebase inicializado com sucesso!');
-  const auth = firebase.auth();
-
-  // Já logado? Vai pro dashboard
-  auth.onAuthStateChanged(u => {
-    if (u) {
-      console.log('Usuário já logado, redirecionando...');
-      location.href = 'dashboard.html';
+  // Verifica o estado de autenticação
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      console.log("Usuário já logado, redirecionando para dashboard.html");
+      location.href = 'dashboard.html'; // Redireciona se já estiver logado
+    } else {
+      console.log("Nenhum usuário logado, mostrando formulário");
+      lMsg.textContent = ''; // Limpa mensagens
     }
   });
 
-  // Login form
-  const formLogin = document.getElementById('formLogin');
-  if (formLogin) {
-    console.log('Formulário de login encontrado!');
-    formLogin.addEventListener('submit', async e => {
-      e.preventDefault();
-      console.log('Form submit disparado!');
-      const email = document.getElementById('lEmail').value.trim();
-      const senha = document.getElementById('lSenha').value;
-      const msg = document.getElementById('lMsg');
-      if (msg) {
-        console.log('Elemento lMsg encontrado, limpando conteúdo...');
-        msg.innerHTML = ''; // Limpa qualquer conteúdo pré-existente
-      } else {
-        console.error('Elemento lMsg não encontrado!');
-      }
-      try {
-        console.log('Tentando login com:', email);
-        await auth.signInWithEmailAndPassword(email, senha);
-        console.log('Login OK, redirecionando...');
-        location.href = 'dashboard.html';
-      } catch (err) {
-        console.error('Erro no login capturado:', err.code, err.message);
-        if (msg) {
-          console.log('Atualizando mensagem de erro no lMsg...');
-          msg.innerHTML = ''; // Garante que o conteúdo seja limpo novamente
-          if (err.code === 'auth/invalid-credential') {
-            msg.textContent = 'Usuário ou Senha inválida. Tente novamente.';
-            console.log('Mensagem personalizada aplicada:', msg.textContent);
-          } else {
-            msg.textContent = err.message || 'Erro ao entrar.';
-            console.log('Mensagem padrão aplicada:', msg.textContent);
-          }
-        }
-      }
-    });
-  } else {
-    console.error('Form de login não encontrado!');
-  }
+  // Lida com o envio do formulário
+  formLogin.addEventListener('submit', (e) => {
+    e.preventDefault(); // Impede o recarregamento da página
+    console.log("Formulário enviado", { email: lEmail.value, senha: lSenha.value }); // Log de depuração
+    lMsg.textContent = 'Carregando...'; // Mostra mensagem de carregamento
 
-  // Reset form (para reset.html)
-  const formReset = document.getElementById('formReset');
-  if (formReset) {
-    formReset.addEventListener('submit', async e => {
-      e.preventDefault();
-      console.log('Form reset disparado!');
-      const email = document.getElementById('rEmail').value.trim();
-      const msg = document.getElementById('rMsg');
-      if (msg) msg.textContent = '';
-      try {
-        await auth.sendPasswordResetEmail(email);
-        if (msg) msg.textContent = 'Link de redefinição enviado para o e-mail.';
-      } catch (err) {
-        console.error('Erro no reset:', err);
-        if (msg) msg.textContent = err.message || 'Erro ao enviar.';
-      }
-    });
-  }
-}
+    const email = lEmail.value.trim();
+    const senha = lSenha.value.trim();
 
-// Inicia a configuração quando o Firebase estiver pronto
-window.addEventListener('firebase-ready', setupAuth);
+    if (!email || !senha) {
+      console.log("E-mail ou senha vazios");
+      lMsg.textContent = 'Por favor, preencha e-mail e senha.';
+      return;
+    }
+
+    // Tenta fazer login com Firebase
+    auth.signInWithEmailAndPassword(email, senha)
+      .then((userCredential) => {
+        console.log("Login bem-sucedido", userCredential.user.email);
+        lMsg.textContent = 'Login bem-sucedido!';
+        setTimeout(() => {
+          location.href = 'dashboard.html';
+        }, 1000); // Redireciona após 1 segundo
+      })
+      .catch((error) => {
+        console.error("Erro no login:", error.code, error.message); // Log de depuração
+        lMsg.textContent = 'Erro: ' + error.message; // Mostra erro ao usuário
+      });
+  });
+});
