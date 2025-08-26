@@ -4,348 +4,218 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Estoque | Dashboard</title>
-
-  <!-- Bootstrap 5 -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-    crossorigin="anonymous"
-  />
-
-  <!-- Seu tema -->
   <link rel="stylesheet" href="theme.css"/>
-
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Estilos personalizados para a sidebar retrátil -->
   <style>
-    /* ==== Fallbacks se seu theme.css não definir as variáveis ==== */
-    :root{
-      --bg: #12090b;
-      --bg-secondary: #1b0f13;
-      --panel: #1e0f10;
-      --txt: #f2e9ec;
-      --muted: #c9b8be;
-      --border: #3b2430;
-      --primary1: #8b1f3f;
-      --primary2: #f28b82;
-      --danger: #e36b6b;
-    }
-
-    html, body { height: 100%; }
-    body { background: var(--bg); color: var(--txt); }
-
-    /* ===== SIDEBAR retrátil ===== */
     .sidebar {
       width: 280px;
       min-height: 100dvh;
-      background: var(--panel);
-      padding: 18px 16px;
+      background: var(--bg);
+      padding: 18px;
       border-right: 1px solid var(--border);
-      position: fixed; inset: 0 auto 0 0;
-      z-index: 1040;
+      transition: width 0.3s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
       color: var(--txt);
-      transition: width .25s ease;
     }
-    .sidebar .brand-title { font-size: 1rem; margin: 8px 0 16px; opacity: .9; }
-    .sidebar .nav-link { color: var(--txt); opacity: .9; }
-    .sidebar .nav-link:hover { opacity: 1; }
-
+    .sidebar-collapsed {
+      width: 60px;
+    }
+    .sidebar-collapsed .brand-title,
+    .sidebar-collapsed .nav a span {
+      display: none;
+    }
+    .sidebar-collapsed .brand-logo {
+      margin: 0 auto;
+    }
     .toggle-btn {
       position: absolute;
-      top: 12px; right: -40px;
-      background: var(--panel);
+      top: 10px;
+      right: -40px;
+      background: var(--bg);
       border: 1px solid var(--border);
       border-left: none;
-      border-radius: 0 8px 8px 0;
-      padding: 6px 10px;
-      color: var(--txt);
+      border-radius: 0 5px 5px 0;
+      padding: 5px 10px;
       cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0,0,0,.25);
-      z-index: 1050;
+      color: var(--txt);
     }
-
-    .sidebar-collapsed { width: 64px; }
-    .sidebar-collapsed .brand-title,
-    .sidebar-collapsed .hide-when-collapsed { display: none; }
-    .sidebar-collapsed .brand-logo { margin: 0 auto; display: block; }
-
-    /* ===== CONTEÚDO ===== */
     .content {
       margin-left: 280px;
-      transition: margin-left .25s ease;
-      padding: 20px;
-      background: var(--bg); /* garante que não fique branco */
-      min-height: 100dvh;
+      padding: 24px;
+      transition: margin-left 0.3s ease;
+      min-height: 80vh; /* Garante uma altura mínima */
+      background: var(--bg-secondary, var(--bg, #1e0f0f));
     }
-    .sidebar-collapsed ~ .content { margin-left: 64px; }
-
-    /* Mobile: sidebar some (usar o toggle dentro da navbar do topo se quiser) */
-    @media (max-width: 991px) {
-      .sidebar { display: none; }
-      .content { margin-left: 0; }
+    .sidebar-collapsed ~ .content {
+      margin-left: 60px;
     }
-
-    /* ===== CARTÕES / CABEÇALHO ===== */
-    .page-header .page-title { margin: 0; }
-    .page-subtitle { color: var(--muted); margin-top: 6px; }
-
-    .card.flat {
-      background: var(--panel);
-      color: var(--txt);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 6px 24px rgba(0,0,0,.2);
-    }
-
-    /* ===== FILTROS ===== */
-    .filters .form-label { font-weight: 600; }
-    .filters .form-control {
-      background: #201116;
-      border: 1px solid var(--border);
-      color: var(--txt);
-      border-radius: 10px;
-    }
-    .filters .form-control::placeholder { color: #9d8e93; }
-
-    /* ===== TABELA ===== */
-    .table-wrap {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px;
-    }
-    .table {
-      color: var(--txt);
-      margin: 0;
-    }
-    .table thead th {
-      border-color: var(--border);
-      color: var(--muted);
-      font-weight: 600;
-    }
-    .table tbody td { border-color: #2c1822; vertical-align: middle; }
-    .table img.thumb {
-      width: 40px; height: 40px; object-fit: cover; border-radius: 8px;
-      box-shadow: 0 3px 12px rgba(0,0,0,.35); cursor: pointer;
-    }
-    .table .right { text-align: right; white-space: nowrap; }
-
-    /* ===== BOTÕES ===== */
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary1), var(--primary2));
-      border: none;
-      font-weight: 600;
-      box-shadow: 0 8px 16px rgba(0,0,0,.25);
-    }
-    .btn-ghost {
+    .btn-logout {
       background: transparent;
-      color: var(--txt);
-      border: 1px solid var(--border);
-    }
-    .btn-danger {
-      background: linear-gradient(135deg, #b91c1c, #f87171);
-      border: none;
-      font-weight: 600;
-      box-shadow: 0 8px 16px rgba(0,0,0,.25);
-    }
-    .btn-action { padding: .4rem .7rem; }
-
-    /* ===== MODAIS SIMPLES (já que você usa modais próprios) ===== */
-    .modal {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.65);
-      z-index: 1060;
-      align-items: center; justify-content: center;
-      padding: 18px;
-    }
-    .modal.open { display: flex; }
-    .modal-card {
+      border: 1px solid var(--danger);
+      color: var(--danger);
       width: 100%;
-      background: var(--panel);
-      color: var(--txt);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.45);
-      padding: 16px;
-      max-width: 720px;
+      padding: 8px;
+      border-radius: 5px;
     }
-    .modal-header {
-      display: flex; align-items: center; justify-content: space-between;
+    .btn-logout:hover {
+      background: rgba(227, 107, 107, 0.2); /* Ajuste com base em --danger */
+    }
+    .table-wrap {
+      overflow-x: auto; /* Rolagem horizontal se necessário */
+      margin-top: 16px;
+    }
+    #tblItens {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #tblItens th, #tblItens td {
+      padding: 12px;
+      text-align: left;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 12px; padding-bottom: 8px;
     }
-    .hint { color: var(--muted); }
-
-    /* Espaçamento geral */
-    .gap-16 { gap: 16px; }
+    #tblItens .right {
+      text-align: right;
+    }
+    .btn-action {
+      margin-left: 4px; /* Espaçamento entre botões */
+      min-width: 90px; /* Consistência no tamanho */
+    }
+    #tblItens tbody .muted {
+      text-align: center;
+      padding: 20px;
+      color: var(--txt-muted, #aaa);
+    }
+    @media (max-width: 900px) {
+      .table-wrap .btn-action {
+        min-width: 84px;
+        padding: 6px 10px;
+      }
+      .sidebar {
+        display: none;
+      }
+      .content {
+        margin-left: 0;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="layout">
-    <!-- SIDEBAR -->
+    <!-- Sidebar retrátil -->
     <aside class="sidebar" id="sidebar">
-      <button class="toggle-btn" id="sidebarToggle" aria-label="Alternar menu">
-        <!-- Ícone padrão do Bootstrap -->
+      <button class="toggle-btn" id="sidebarToggle">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="text-center mb-3">
-        <img src="favicon.png" alt="Logo" width="40" height="40" class="brand-logo">
-        <div class="brand-title">Estoque -MD-</div>
-      </div>
-      <!-- Conteúdo injetado pelo sidebar.js -->
       <div data-sidebar-content></div>
     </aside>
-
     <!-- CONTEÚDO -->
     <main class="content" id="page-dashboard">
-      <div class="container-fluid">
-        <header class="page-header mb-3">
-          <h2 class="page-title">Estoque | Dashboard</h2>
-          <p class="page-subtitle">
-            Filtre, exporte e movimente itens do estoque. Clique na imagem para visualizar.
-          </p>
-        </header>
-
-        <!-- FILTROS -->
-        <section class="card flat p-3 mb-3">
-          <div class="row g-3 filters">
-            <div class="col-12 col-md-4">
-              <label for="fNome" class="form-label">Filtrar por nome</label>
-              <input id="fNome" class="form-control" placeholder="Ex.: Fio, Tomada, Cabo..." />
-            </div>
-            <div class="col-12 col-md-4">
-              <label for="fCategoria" class="form-label">Categoria</label>
-              <input id="fCategoria" class="form-control" placeholder="Ex.: Elétrica, Som..." />
-            </div>
-            <div class="col-12 col-md-4">
-              <label for="fLocal" class="form-label">Local de Armazenamento</label>
-              <input id="fLocal" class="form-control" placeholder="Ex.: Caixa A1, Depósito..." />
-            </div>
+      <header class="page-header">
+        <h2 class="page-title">Estoque | Dashboard</h2>
+        <p class="page-subtitle">
+          Filtre, exporte e movimente itens do estoque. Clique na imagem para pré-visualizar.
+        </p>
+      </header>
+      <!-- FILTROS -->
+      <section class="card flat">
+        <div class="grid-3">
+          <div class="field">
+            <label for="fNome">Filtrar por nome</label>
+            <input id="fNome" class="form-control" placeholder="Ex.: Fio, Tomada, Cabo..."/>
           </div>
-
-          <div class="d-flex flex-wrap gap-16 mt-3">
-            <button type="button" class="btn btn-ghost" id="btnCsv">Exportar CSV</button>
-            <button type="button" class="btn btn-ghost" id="btnPdf">Exportar PDF</button>
+          <div class="field">
+            <label for="fCategoria">Categoria</label>
+            <input id="fCategoria" class="form-control" placeholder="Ex.: Elétrica, Som..."/>
           </div>
-        </section>
-
-        <!-- TABELA -->
-        <section class="table-wrap">
-          <div class="table-responsive">
-            <table id="tblItens" class="table align-middle">
-              <thead>
-                <tr>
-                  <th>Imagem</th>
-                  <th>Nome</th>
-                  <th>Categoria</th>
-                  <th>Qtd</th>
-                  <th>Unid.</th>
-                  <th>Local</th>
-                  <th class="right">Ações</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <div class="field">
+            <label for="fLocal">Local de Armazenamento</label>
+            <input id="fLocal" class="form-control" placeholder="Ex.: Caixa A1, Depósito..."/>
           </div>
-        </section>
-      </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="btnCsv">Exportar CSV</button>
+          <button type="button" class="btn btn-ghost" id="btnPdf">Exportar PDF</button>
+        </div>
+      </section>
+      <!-- TABELA -->
+      <section class="table-wrap">
+        <table id="tblItens">
+          <thead>
+            <tr>
+              <th>Imagem</th>
+              <th>Nome</th>
+              <th>Categoria</th>
+              <th>Qtd</th>
+              <th>Unid.</th>
+              <th>Local</th>
+              <th class="right">Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
     </main>
   </div>
-
   <!-- MODAL: imagem -->
-  <div class="modal" id="modalImg" role="dialog" aria-modal="true">
-    <div class="modal-card" style="max-width:820px">
+  <div class="modal" id="modalImg">
+    <div class="modal-card" style="max-width:720px">
       <div class="modal-header">
-        <h3 class="modal-title h5 m-0">Imagem do item</h3>
-        <button class="btn btn-ghost btn-sm" id="closeImg">Fechar</button>
+        <h3 class="modal-title">Imagem do item</h3>
+        <button class="btn btn-ghost" id="closeImg">Fechar</button>
       </div>
-      <img id="bigImg" src="" alt="Imagem do item"
-           style="width:100%;border-radius:10px;border:1px solid var(--border)"/>
+      <img id="bigImg" src="" alt="Imagem do item" style="width:100%;border-radius:10px;border:1px solid var(--border)"/>
     </div>
   </div>
-
   <!-- MODAL: movimentação -->
-  <div class="modal" id="modalMov" role="dialog" aria-modal="true">
-    <div class="modal-card" style="max-width:560px">
+  <div class="modal" id="modalMov">
+    <div class="modal-card" style="max-width:520px">
       <div class="modal-header">
-        <h3 class="modal-title h5 m-0" id="movTitle">Movimentar</h3>
-        <button class="btn btn-ghost btn-sm" id="closeMov">Fechar</button>
+        <h3 class="modal-title" id="movTitle">Movimentar</h3>
+        <button class="btn btn-ghost" id="closeMov">Fechar</button>
       </div>
-
-      <div class="row g-3">
-        <div class="col-12 col-md-6">
-          <label class="form-label">Quantidade *</label>
+      <div class="grid-2">
+        <div class="field">
+          <label>Quantidade *</label>
           <input id="mvQtd" type="number" min="1" step="1" class="form-control" placeholder="Ex.: 5"/>
         </div>
-        <div class="col-12 col-md-6">
-          <label class="form-label">Tipo</label>
+        <div class="field">
+          <label>Tipo</label>
           <input id="mvTipo" disabled class="form-control" value="entrada"/>
         </div>
-        <div class="col-12">
-          <label class="form-label">Observação (opcional)</label>
+        <div class="field full">
+          <label>Observação (opcional)</label>
           <input id="mvObs" class="form-control" placeholder="Motivo, OS, responsável etc."/>
         </div>
       </div>
-
-      <div class="d-flex justify-content-end mt-3">
+      <div class="modal-actions">
         <button class="btn btn-primary" id="btnConfirmMov">Confirmar</button>
       </div>
       <p class="hint" id="mvMsg" style="margin-top:8px"></p>
     </div>
   </div>
-
   <!-- BASE -->
   <script src="firebase.js"></script>
   <script src="sidebar.js"></script>
-
-  <!-- Bootstrap JS -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-    crossorigin="anonymous">
-  </script>
-
-  <!-- LÓGICA (mantive seus IDs e nomes) -->
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <!-- LÓGICA -->
   <script>
-    // ====== Sidebar retrátil: só colapsa/expande em telas >=992px (desktop/tablet) ======
-    (function(){
-      const sidebar   = document.getElementById('sidebar');
-      const toggleBtn = document.getElementById('sidebarToggle');
-      function isDesktop(){ return window.matchMedia('(min-width: 992px)').matches; }
-      function toggle(){
-        if(!isDesktop()) return; // no mobile a sidebar fica oculta
-        sidebar.classList.toggle('sidebar-collapsed');
-        // empurra o conteúdo via classe de irmão (~ .content) já no CSS
-        const content = document.querySelector('.content');
-        if(sidebar.classList.contains('sidebar-collapsed')){
-          content.classList.add('with-collapsed');
-        } else {
-          content.classList.remove('with-collapsed');
-        }
-      }
-      toggleBtn?.addEventListener('click', toggle);
-      // garante estado correto ao redimensionar
-      window.addEventListener('resize', ()=>{
-        if(!isDesktop()){
-          sidebar.classList.remove('sidebar-collapsed');
-          document.querySelector('.content')?.classList.remove('with-collapsed');
-        }
-      });
-    })();
-
-    // ====== Helpers ======
-    const $  = s => document.querySelector(s);
+    console.log("Iniciando dashboard.js");
+    const $ = s => document.querySelector(s);
     const $$ = s => Array.from(document.querySelectorAll(s));
     const fNome = $('#fNome');
     const fCategoria = $('#fCategoria');
     const fLocal = $('#fLocal');
     const tbody = $('#tblItens tbody');
-
     // Modais
     const modalImg = $('#modalImg');
     const bigImg = $('#bigImg');
     $('#closeImg').onclick = () => modalImg.classList.remove('open');
-
     const modalMov = $('#modalMov');
     const mvQtd = $('#mvQtd');
     const mvObs = $('#mvObs');
@@ -353,35 +223,28 @@
     const mvTipoInput = $('#mvTipo');
     const movTitle = $('#movTitle');
     $('#closeMov').onclick = () => modalMov.classList.remove('open');
-
     let ITENS_CACHE = [];
-    let MOV_ITEM = null; // item alvo
+    let MOV_ITEM = null; // item alvo da movimentação
     let MOV_TIPO = 'entrada';
-
-    function n(v){ return typeof v === 'number' ? v : (Number(v) || 0); }
-
-    function openImg(url){
+    function openImg(url) {
       bigImg.src = url || '';
       modalImg.classList.add('open');
     }
-    window.openImg = openImg;
-
-    // ====== Render com filtros ======
-    function render(){
+    window.openImg = openImg; // para usar no onclick inline
+    function n(v) { return typeof v === 'number' ? v : (Number(v) || 0); }
+    // Render da tabela com filtros
+    function render() {
       const qNome = fNome.value.trim().toLowerCase();
-      const qCat  = fCategoria.value.trim().toLowerCase();
-      const qLoc  = fLocal.value.trim().toLowerCase();
-
-      const rows = ITENS_CACHE.filter(i=>{
+      const qCat = fCategoria.value.trim().toLowerCase();
+      const qLoc = fLocal.value.trim().toLowerCase();
+      const rows = ITENS_CACHE.filter(i => {
         const okN = !qNome || (i.nome || '').toLowerCase().includes(qNome);
-        const okC = !qCat  || (i.categoria || '').toLowerCase().includes(qCat);
-        const okL = !qLoc  || (i.local || '').toLowerCase().includes(qLoc);
+        const okC = !qCat || (i.categoria || '').toLowerCase().includes(qCat);
+        const okL = !qLoc || (i.local || '').toLowerCase().includes(qLoc);
         return okN && okC && okL;
-      }).map(i=>{
+      }).map(i => {
         const img = i.imageUrl
-          ? `<img class="thumb" src="${(i.imageUrl||'').replace(/"/g,'&quot;')}"
-                   alt="${(i.nome||'').replace(/"/g,'&quot;')}"
-                   onclick="openImg('${(i.imageUrl||'').replace(/"/g,'&quot;')}')">`
+          ? `<img class="thumb" src="${i.imageUrl.replace(/'/g, "\\'")}" alt="${i.nome}" onclick="openImg('${i.imageUrl.replace(/'/g, "\\'")}')">`
           : `<img class="thumb" src="sem-imagem.png" alt="sem imagem">`;
         return `
           <tr data-id="${i.id}">
@@ -392,28 +255,23 @@
             <td>${i.unidade || '-'}</td>
             <td>${i.local || '-'}</td>
             <td class="right">
-              <div class="btn-group">
-                <button class="btn btn-primary btn-action btn-entrada" data-id="${i.id}">Entrada</button>
-                <button class="btn btn-danger btn-action btn-saida" data-id="${i.id}">Saída</button>
-                <a class="btn btn-ghost btn-action" href="novo.html?id=${i.id}">Editar</a>
-                <button class="btn btn-ghost btn-action btn-excluir" data-id="${i.id}">Excluir</button>
-              </div>
+              <button class="btn btn-primary btn-action btn-entrada" data-id="${i.id}">Entrada</button>
+              <button class="btn btn-danger btn-action btn-saida" data-id="${i.id}">Saída</button>
+              <a class="btn btn-ghost btn-action" href="novo.html?id=${i.id}">Editar</a>
+              <button class="btn btn-ghost btn-action btn-excluir" data-id="${i.id}">Excluir</button>
             </td>
           </tr>
         `;
       }).join('');
-
-      tbody.innerHTML = rows || '<tr><td colspan="7" class="text-center text-secondary">Nenhum item encontrado.</td></tr>';
-
+      tbody.innerHTML = rows || '<tr><td colspan="7" class="muted">Nenhum item encontrado.</td></tr>';
       // Liga botões
-      $$('.btn-entrada').forEach(b => b.onclick = ()=> openMov(b.dataset.id, 'entrada'));
-      $$('.btn-saida').forEach(b => b.onclick = ()=> openMov(b.dataset.id, 'saida'));
-      $$('.btn-excluir').forEach(b => b.onclick = ()=> excluirItem(b.dataset.id));
+      $$('.btn-entrada').forEach(b => b.onclick = () => openMov(b.dataset.id, 'entrada'));
+      $$('.btn-saida').forEach(b => b.onclick = () => openMov(b.dataset.id, 'saida'));
+      $$('.btn-excluir').forEach(b => b.onclick = () => excluirItem(b.dataset.id));
     }
-
-    function openMov(id, tipo){
+    function openMov(id, tipo) {
       const item = ITENS_CACHE.find(x => x.id === id);
-      if(!item) return;
+      if (!item) return;
       MOV_ITEM = item;
       MOV_TIPO = tipo;
       mvQtd.value = '';
@@ -424,11 +282,10 @@
       movTitle.textContent = `${tipo === 'entrada' ? 'Entrada' : 'Saída'} — ${item.nome} (estoque: ${n(item.qtd)})`;
       modalMov.classList.add('open');
     }
-
-    async function confirmarMov(){
-      if(!MOV_ITEM) return;
+    async function confirmarMov() {
+      if (!MOV_ITEM) return;
       const qtd = Number(mvQtd.value);
-      if(!qtd || qtd < 1){
+      if (!qtd || qtd < 1) {
         mvMsg.textContent = 'Informe uma quantidade válida.';
         mvMsg.style.color = '#FFD2D2';
         return;
@@ -436,88 +293,82 @@
       const obs = mvObs.value.trim();
       const tipo = MOV_TIPO;
       const user = auth.currentUser;
-      if(!user){ location.href = 'login.html'; return; }
-
+      if (!user) { location.href = 'login.html'; return; }
       const itemRef = db.collection('itens').doc(MOV_ITEM.id);
-      const movRef  = db.collection('movimentacoes').doc();
-
-      try{
-        await db.runTransaction(async t=>{
+      const movRef = db.collection('movimentacoes').doc();
+      try {
+        await db.runTransaction(async t => {
           const snap = await t.get(itemRef);
-          if(!snap.exists) throw new Error('Item não encontrado.');
+          if (!snap.exists) throw new Error('Item não encontrado.');
           const atual = Number(snap.data().qtd || 0);
-          const novo  = (tipo === 'entrada') ? (atual + qtd) : (atual - qtd);
-          if(novo < 0) throw new Error(`Estoque insuficiente: atual ${atual}.`);
+          const novo = (tipo === 'entrada') ? (atual + qtd) : (atual - qtd);
+          if (novo < 0) throw new Error(`Estoque insuficiente: atual ${atual}.`);
           const inc = firebase.firestore.FieldValue.increment(tipo === 'entrada' ? qtd : -qtd);
           t.update(itemRef, { qtd: inc });
           t.set(movRef, {
-            itemId    : MOV_ITEM.id,
-            itemNome  : MOV_ITEM.nome || '',
+            itemId: MOV_ITEM.id,
+            itemNome: MOV_ITEM.nome || '',
             tipo, qtd,
-            obs       : obs || '',
-            usuario   : user.uid,
+            obs: obs || '',
+            usuario: user.uid,
             usuarioNome: user.email || user.displayName || '',
-            data      : firebase.firestore.FieldValue.serverTimestamp()
+            data: firebase.firestore.FieldValue.serverTimestamp()
           });
         });
         mvMsg.textContent = 'Movimentação registrada!';
         mvMsg.style.color = '#9BE39B';
-        setTimeout(()=> modalMov.classList.remove('open'), 700);
-      } catch(err){
+        setTimeout(() => modalMov.classList.remove('open'), 700);
+      } catch (err) {
         console.error(err);
         mvMsg.textContent = err.message || 'Erro ao movimentar.';
         mvMsg.style.color = '#FFD2D2';
       }
     }
     $('#btnConfirmMov').onclick = confirmarMov;
-
-    async function excluirItem(id){
-      // dupla confirmação
-      if(!confirm('Tem certeza que deseja excluir este item?')) return;
-      if(!confirm('Confirme novamente para excluir permanentemente.')) return;
-      try{
+    async function excluirItem(id) {
+      if (!confirm('Tem certeza que deseja excluir este item?')) return;
+      try {
         await db.collection('itens').doc(id).delete();
-      }catch(e){
+      } catch (e) {
         alert('Erro ao excluir: ' + (e.message || e));
       }
     }
-
-    // ===== Exportações =====
-    function exportCSV(){
+    // Exportações
+    function exportCSV() {
       const ths = $$('#tblItens thead th').map(th => th.textContent.trim());
       const trs = Array.from(tbody.querySelectorAll('tr')).map(tr =>
-        Array.from(tr.children).slice(0, 6).map(td => `"${(td.textContent || '').replaceAll('"','""')}"`).join(',')
+        Array.from(tr.children).slice(0, 6).map(td => `"${(td.textContent || '').replaceAll('"', '""')}"`).join(',')
       );
-      const csv = [ths.slice(0,6).join(','), ...trs].join('\n');
-      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+      const csv = [ths.slice(0, 6).join(','), ...trs].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `estoque_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `estoque_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
     }
-    function exportPDF(){ window.print(); }
+    function exportPDF() { window.print(); }
     $('#btnCsv').onclick = exportCSV;
     $('#btnPdf').onclick = exportPDF;
-
-    // ===== Filtros =====
+    // Filtros
     [fNome, fCategoria, fLocal].forEach(el => el.addEventListener('input', render));
-
-    // ===== Realtime =====
-    function watchItens(){
-      db.collection('itens').orderBy('nome').onSnapshot(snap=>{
+    // Watch itens em tempo real
+    function watchItens() {
+      db.collection('itens').orderBy('nome').onSnapshot(snap => {
         ITENS_CACHE = [];
-        snap.forEach(doc => ITENS_CACHE.push({ id: doc.id, ...(doc.data()||{}) }));
+        snap.forEach(doc => ITENS_CACHE.push({ id: doc.id, ...doc.data() }));
+        console.log("Itens carregados:", ITENS_CACHE.length);
         render();
-      }, err=>{
+      }, err => {
         console.error('Erro ao carregar itens:', err);
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Erro ao carregar: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7">Erro ao carregar: ${err.message}</td></tr>`;
       });
     }
-
-    // ===== Start =====
-    window.addEventListener('firebase-ready', ()=>{
-      auth.onAuthStateChanged(u=>{
-        if(!u){ location.href = 'login.html'; return; }
+    // Start
+    window.addEventListener('firebase-ready', () => {
+      console.log("Firebase-ready disparado");
+      auth.onAuthStateChanged(u => {
+        if (!u) { location.href = 'login.html'; return; }
+        console.log("Usuário autenticado, iniciando watchItens");
         watchItens();
       });
     });
