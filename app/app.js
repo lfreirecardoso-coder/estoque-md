@@ -12,12 +12,12 @@ window.addEventListener('firebase-ready', () => {
       location.href = '/login.html';
       return;
     }
-    // Verifica a página atual e redireciona se necessário
+    // Verifica a página atual e redireciona se for index
     const currentPath = location.pathname.toLowerCase();
     console.log("Caminho atual:", currentPath);
     if (currentPath === '/index.html' || currentPath === '/' || currentPath === '') {
-      console.log("Redirecionando para /dashboard.html por usuário logado");
-      location.href = '/dashboard.html';
+      console.log("Redirecionamento forçado para /dashboard.html");
+      location.href = '/dashboard.html'; // Força o redirecionamento
     } else {
       console.log("Inicializando página:", currentPath);
       initByPage();
