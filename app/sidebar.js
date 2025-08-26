@@ -1,27 +1,27 @@
 // sidebar.js — Sidebar unificada (MD | APP ESTOQUE)
 // - Mantém logo (com fallback para arquivo alternativo e SVG)
-// - Botão SAIR com estilo discreto (outline vermelho) e largura total
+// - Botão SAIR com estilo discreto e largura total
 // - Marca item ativo automaticamente
 // - Remove qualquer "Sair" legado minúsculo da página
 
 (function initSidebar() {
   const html = `
     <div class="brand">
-      <img class="brand-logo" id="brandLogo" src="img/logo.png" alt="Logo">
-      <h3 class="brand-title">Estoque -MD-</h3>
+      <img src="logo.png" alt="Logo" class="brand-logo" style="width:80px;height:80px;object-fit:contain" />
+      <h1 class="brand-title" style="font-size:1.1rem;margin:0">Estoque -MD-</h1>
     </div>
 
-    <nav class="nav flex-column">
-      <a class="nav-link" href="/dashboard.html">Gestão de Estoque</a>
-      <a class="nav-link" href="/novo.html">Cadastro de Estoque</a>
-      <a class="nav-link" href="/cadastro_base.html">Cadastro Base | Listas Mestras</a>
-      <a class="nav-link" href="/admin_users.html">Cadastro de Usuários</a>       
-      <a class="nav-link" href="/rel.html">Relatórios</a>     
-      <a class="nav-link" href="/mov.html">Log de Movimentações</a>
+    <nav class="nav">
+      <a href="/dashboard.html">Gestão de Estoque</a>
+      <a href="/novo.html">Cadastro de Estoque</a>
+      <a href="/cadastro_base.html">Cadastro Base</a>
+      <a href="/rel.html">Relatórios</a>     
+      <a href="/admin_users.html">Cadastro de Usuários</a> 
+      <a href="/mov.html">Log de Movimentações</a>
     </nav>
 
-    <div class="bottom mt-auto">
-      <button id="btnLogout" class="btn btn-outline-danger w-100">⎋ Sair</button>
+    <div class="bottom">
+      <button class="btn-logout btn btn-ghost-danger w-100" id="btnLogout">Sair</button>
     </div>
   `;
 
@@ -31,17 +31,17 @@
 
   // Marca ativo
   const here = (location.pathname.split('/').pop() || 'dashboard.html').toLowerCase();
-  document.querySelectorAll('.nav-link').forEach(a => {
+  document.querySelectorAll('.nav a').forEach(a => {
     const file = a.getAttribute('href').split('/').pop().toLowerCase();
     if (file === here) a.classList.add('active');
   });
 
   // Fallback da logo
-  const logo = document.getElementById('brandLogo');
+  const logo = document.querySelector('.brand-logo');
   if (logo) {
     logo.addEventListener('error', function onFail() {
-      if (this.src.indexOf('img/logo.png') !== -1) {
-        this.src = '/logo.png'; // Caminho relativo para hosting
+      if (this.src === 'logo.png') {
+        this.src = 'img/logo.png';
         return;
       }
       this.removeEventListener('error', onFail);
@@ -68,7 +68,7 @@
 
     const attach = () => btn.onclick = () => {
       window.auth.signOut().then(() => {
-        console.log("Logout realizado, redirecionando para login.html");
+        console.log("Logout realizado, redirecionando para /login.html");
         location.href = '/login.html';
       }).catch((error) => console.error("Erro no logout:", error.message));
     };
