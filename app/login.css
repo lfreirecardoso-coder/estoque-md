@@ -170,3 +170,9 @@ footer p {
     font-size: 12px;
   }
 }
+/* Estilo para a mensagem de carregamento no index.html */
+.card-body p.muted {
+  font-size: 16px;
+  color: var(--text-strong);
+  margin: 0;
+}
