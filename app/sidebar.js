@@ -11,17 +11,17 @@
       <h3 class="brand-title">Estoque -MD-</h3>
     </div>
 
-    <nav class="nav">
-      	<a href="dashboard.html">Gestão de Estoque</a>
-      	<a href="novo.html">Cadastro de Estoque</a>
-      	<a href="cadastro_base.html">Cadastro Base | Listas Mestras</a>
-	<a href="admin_users.html">Cadastro de Usuários</a>       
-	<a href="rel.html">Relatórios</a>     
-      	<a href="mov.html">Log de Movimentações</a>
+    <nav class="nav flex-column">
+      <a class="nav-link" href="/dashboard.html">Gestão de Estoque</a>
+      <a class="nav-link" href="/novo.html">Cadastro de Estoque</a>
+      <a class="nav-link" href="/cadastro_base.html">Cadastro Base | Listas Mestras</a>
+      <a class="nav-link" href="/admin_users.html">Cadastro de Usuários</a>       
+      <a class="nav-link" href="/rel.html">Relatórios</a>     
+      <a class="nav-link" href="/mov.html">Log de Movimentações</a>
     </nav>
 
-    <div class="bottom">
-      <button id="btnLogout" class="btn btn-ghost-danger">⎋ Sair</button>
+    <div class="bottom mt-auto">
+      <button id="btnLogout" class="btn btn-outline-danger w-100">⎋ Sair</button>
     </div>
   `;
 
@@ -31,21 +31,19 @@
 
   // Marca ativo
   const here = (location.pathname.split('/').pop() || 'dashboard.html').toLowerCase();
-  document.querySelectorAll('.nav a').forEach(a => {
+  document.querySelectorAll('.nav-link').forEach(a => {
     const file = a.getAttribute('href').split('/').pop().toLowerCase();
     if (file === here) a.classList.add('active');
   });
 
-  // Fallback da logo:
+  // Fallback da logo
   const logo = document.getElementById('brandLogo');
   if (logo) {
     logo.addEventListener('error', function onFail() {
-      // tenta logo.png na raiz
       if (this.src.indexOf('img/logo.png') !== -1) {
-        this.src = 'logo.png';
+        this.src = '/logo.png'; // Caminho relativo para hosting
         return;
       }
-      // se também falhar, usa um SVG simples (ícone)
       this.removeEventListener('error', onFail);
       this.outerHTML = `
         <svg class="brand-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -55,7 +53,7 @@
     });
   }
 
-  // Remove qualquer "Sair" legado minúsculo dentro da página
+  // Remove qualquer "Sair" legado minúsculo
   Array.from(document.querySelectorAll('input,button')).forEach(el => {
     const txt = (el.value || el.textContent || '').trim().toLowerCase();
     if (txt === 'sair' && el.id !== 'btnLogout') {
@@ -63,13 +61,17 @@
     }
   });
 
-  // Wire do logout (aguarda firebase se necessário)
+  // Wire do logout
   function wireLogout() {
     const btn = document.getElementById('btnLogout');
     if (!btn) return;
 
-    const attach = () => btn.onclick = () =>
-      window.auth.signOut().then(() => (location.href = 'login.html'));
+    const attach = () => btn.onclick = () => {
+      window.auth.signOut().then(() => {
+        console.log("Logout realizado, redirecionando para login.html");
+        location.href = '/login.html';
+      }).catch((error) => console.error("Erro no logout:", error.message));
+    };
 
     if (window.auth && typeof window.auth.signOut === 'function') {
       attach();
