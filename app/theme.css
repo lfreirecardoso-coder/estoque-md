@@ -1,33 +1,104 @@
-/* Evita rolagem lateral do site */
-html, body { overflow-x: hidden; }
-
-/* Larguras da sidebar */
+/* ====== Tema Dark unificado (sobrepõe Bootstrap) ====== */
 :root{
-  --sidebar: 280px;
-  --sidebar-collapsed: 64px;
+  --bg: #1a0e0e;
+  --bg-secondary: #211010;
+  --panel: #2b1515;
+  --panel-2: #351a1a;
+  --border: #4d2626;
+  --txt: #f0e6e6;
+  --muted: #c7b6b6;
+  --primary: #e48a8a;
+  --danger: #f26a6a;
+  --success: #7ddc9f;
 }
 
-/* Sidebar fixa à esquerda */
-.sidebar{
-  width: var(--sidebar);
+/* Fundo e texto padrão */
+html, body { background: var(--bg); color: var(--txt); overflow-x: hidden; }
+
+/* Conteúdo e cartões no mesmo tom */
+.content{ background: var(--bg); color: var(--txt); }
+.card, .modal-card, .offcanvas, .dropdown-menu{
+  background: var(--panel);
+  color: var(--txt);
+  border: 1px solid var(--border);
+}
+.page-header .page-title{ color: var(--txt); }
+.page-header .page-subtitle{ color: var(--muted); }
+
+/* Inputs/Selects/Placeholders */
+.form-control, .form-select{
+  background: var(--panel-2);
+  color: var(--txt);
+  border: 1px solid var(--border);
+}
+.form-control:focus, .form-select:focus{
+  background: var(--panel-2);
+  color: var(--txt);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 .2rem rgba(228,138,138,.15);
+}
+.form-control::placeholder{ color: #bda7a7; }
+
+/* Botões */
+.btn.btn-ghost{
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--txt);
+}
+.btn.btn-ghost:hover{
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.btn-primary{
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #2b1515;
+}
+.btn-danger{
+  background: var(--danger);
+  border-color: var(--danger);
+}
+.btn-success{
+  background: var(--success);
+  border-color: var(--success);
+  color: #13351f;
 }
 
-/* Conteúdo encostado na barra (desktop) */
-.content{
-  margin-left: var(--sidebar);
-  max-width: 100%;
+/* Tabelas */
+.table-wrap{ background: var(--panel); border:1px solid var(--border); border-radius: 12px; }
+.table{ color: var(--txt); margin: 0; }
+.table thead th{
+  background: var(--panel-2);
+  color: var(--txt);
+  border-bottom: 1px solid var(--border);
 }
+.table tbody tr{ border-color: var(--border); }
+.table-hover tbody tr:hover{ background: rgba(255,255,255,.04); }
 
-/* Quando a barra estiver recolhida, empurra menos o conteúdo */
-.sidebar.sidebar-collapsed ~ .content{
-  margin-left: var(--sidebar-collapsed) !important;
-}
+/* Imagens da tabela */
+.thumb{ width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border:1px solid var(--border); }
 
-/* MOBILE: a barra some e o conteúdo ocupa 100% */
+/* Sidebar + conteúdo: sem “empurrar” indevido */
+:root{ --sidebar: 280px; --sidebar-collapsed: 64px; }
+.sidebar{ width: var(--sidebar); min-height: 100dvh; background: var(--panel); color: var(--txt); border-right:1px solid var(--border); }
+.content{ margin-left: var(--sidebar); transition: margin-left .25s ease; }
+.sidebar.sidebar-collapsed ~ .content{ margin-left: var(--sidebar-collapsed) !important; }
+
+/* Mobile: sidebar some; conteúdo ocupa 100% */
 @media (max-width: 991.98px){
   .sidebar{ display:none; }
   .content{ margin-left: 0 !important; }
 }
 
-/* Tabela responsiva sem “estourar” a largura */
+/* Responsivo de tabela */
 .table-responsive{ overflow-x: auto; }
+
+/* Pequenos ajustes de grid antigo (se ainda tiver) */
+.grid-3, .grid-2{
+  display: grid; gap: 12px;
+}
+.grid-3{ grid-template-columns: repeat(3, 1fr); }
+.grid-2{ grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 991.98px){
+  .grid-3, .grid-2{ grid-template-columns: 1fr; }
+}
