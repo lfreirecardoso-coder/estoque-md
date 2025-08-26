@@ -246,3 +246,25 @@
 @media (max-width: 576px){
   .table .btn{ padding:.4rem .55rem; font-size:.85rem; }
 }
+/* === Força a tabela ficar dark em todos os navegadores (inclusive iOS) === */
+.table-wrap{ background: var(--panel); border:1px solid var(--border); border-radius:12px; }
+.table{ color: var(--txt); }
+.table thead th{
+  background: var(--panel-2) !important;
+  color: var(--txt) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+/* O Bootstrap às vezes injeta fundos claros via variável; anulamos isso */
+.table, .table>:not(caption)>*>*{
+  background-color: transparent !important;
+  color: var(--txt) !important;
+  border-color: var(--border) !important;
+}
+.table-hover tbody tr:hover{ background: rgba(255,255,255,.05) !important; }
+/* Ícone hambúrguer sempre claro */
+.btn .navbar-toggler-icon{
+  filter: invert(1) grayscale(1);
+  width: 1.25rem;
+  height: 1rem;
+  background-size: 100% 100%;
+}
