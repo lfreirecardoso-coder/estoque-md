@@ -12,49 +12,45 @@
       width: 250px;
       min-height: 100vh;
       background: linear-gradient(135deg, var(--vinho), var(--rosa));
-      transition: width 0.3s;
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding: 20px;
+      z-index: 1000;
     }
     .sidebar .nav-link {
       color: #fff !important;
       padding: 10px 15px;
+      display: block;
     }
     .sidebar .nav-link:hover, .sidebar .nav-link.active {
       background-color: rgba(255, 255, 255, 0.1);
       border-radius: 5px;
     }
-    .offcanvas-header .btn-close {
-      filter: invert(1);
-    }
     @media (max-width: 991px) {
       .sidebar {
-        width: 0;
+        display: none; /* Oculta em telas pequenas, pode usar offcanvas se preferir */
       }
-      .offcanvas {
-        background: linear-gradient(135deg, var(--vinho), var(--rosa));
+      .content {
+        margin-left: 0 !important;
       }
+    }
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+      flex-grow: 1;
     }
   </style>
 </head>
 <body class="login-body">
-  <div class="d-flex flex-column flex-lg-row h-100">
-    <!-- Sidebar (Offcanvas para mobile) -->
-    <div class="offcanvas offcanvas-start sidebar" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="sidebarLabel"></h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body">
-        <div data-sidebar></div> <!-- Injeção do sidebar.js -->
-      </div>
-    </div>
-
-    <!-- Botão de toggle para mobile -->
-    <button class="btn btn-outline-light d-lg-none m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div data-sidebar></div> <!-- Injeção do sidebar.js -->
+    </aside>
 
     <!-- Main Content -->
-    <main class="flex-grow-1 p-4">
+    <main class="content">
       <h2 class="page-title">Filtre, exporte e movimente itens do estoque. Clique na imagem para pré-visualizar.</h2>
 
       <!-- Filtros -->
