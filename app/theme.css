@@ -1,4 +1,4 @@
-/* ====== Tema Dark unificado (sobrepõe Bootstrap) ====== */
+/* ====== Tema Dark base (padroniza tudo) ====== */
 :root{
   --bg: #1a0e0e;
   --bg-secondary: #211010;
@@ -10,22 +10,38 @@
   --primary: #e48a8a;
   --danger: #f26a6a;
   --success: #7ddc9f;
+
+  --sidebar: 280px;
+  --sidebar-collapsed: 68px;
 }
 
-/* Fundo e texto padrão */
-html, body { background: var(--bg); color: var(--txt); overflow-x: hidden; }
+/* Safe-area (iPhone) + altura real em mobile */
+.app-body{
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100svh;
+  min-height: 100vh; /* fallback */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
 
-/* Conteúdo e cartões no mesmo tom */
-.content{ background: var(--bg); color: var(--txt); }
-.card, .modal-card, .offcanvas, .dropdown-menu{
+/* Cartões, modais, menus no mesmo tom */
+.card, .modal-content, .offcanvas, .dropdown-menu{
   background: var(--panel);
   color: var(--txt);
   border: 1px solid var(--border);
 }
-.page-header .page-title{ color: var(--txt); }
-.page-header .page-subtitle{ color: var(--muted); }
+.navbar{ background: transparent; }
 
-/* Inputs/Selects/Placeholders */
+/* Títulos e subtítulos */
+.page-title{ color: var(--txt); }
+.text-muted{ color: var(--muted) !important; }
+
+/* Inputs e selects */
 .form-control, .form-select{
   background: var(--panel-2);
   color: var(--txt);
@@ -35,17 +51,17 @@ html, body { background: var(--bg); color: var(--txt); overflow-x: hidden; }
   background: var(--panel-2);
   color: var(--txt);
   border-color: var(--primary);
-  box-shadow: 0 0 0 .2rem rgba(228,138,138,.15);
+  box-shadow: 0 0 0 .2rem rgba(228,138,138,.18);
 }
-.form-control::placeholder{ color: #bda7a7; }
+.form-control::placeholder{ color: #bca6a6; }
 
-/* Botões */
-.btn.btn-ghost{
+/* Botões “ghost” e estados principais */
+.btn-ghost{
   background: transparent;
   border: 1px solid var(--border);
   color: var(--txt);
 }
-.btn.btn-ghost:hover{
+.btn-ghost:hover{
   border-color: var(--primary);
   color: var(--primary);
 }
@@ -54,51 +70,63 @@ html, body { background: var(--bg); color: var(--txt); overflow-x: hidden; }
   border-color: var(--primary);
   color: #2b1515;
 }
-.btn-danger{
-  background: var(--danger);
-  border-color: var(--danger);
-}
-.btn-success{
-  background: var(--success);
-  border-color: var(--success);
-  color: #13351f;
-}
+.btn-danger{ background: var(--danger); border-color: var(--danger); }
+.btn-success{ background: var(--success); border-color: var(--success); color:#0f2b19; }
 
-/* Tabelas */
-.table-wrap{ background: var(--panel); border:1px solid var(--border); border-radius: 12px; }
-.table{ color: var(--txt); margin: 0; }
+/* Tabela */
+.table-wrap{ background: var(--panel); border:1px solid var(--border); border-radius:12px; }
+.table{ color: var(--txt); margin:0; }
 .table thead th{
   background: var(--panel-2);
   color: var(--txt);
   border-bottom: 1px solid var(--border);
 }
 .table tbody tr{ border-color: var(--border); }
-.table-hover tbody tr:hover{ background: rgba(255,255,255,.04); }
+.table-hover tbody tr:hover{ background: rgba(255,255,255,.05); }
+.thumb{ width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
+.table .btn{ padding:.35rem .6rem; font-size:.9rem; }
+@media (max-width: 576px){ .table .btn{ padding:.4rem .55rem; font-size:.85rem; } }
 
-/* Imagens da tabela */
-.thumb{ width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border:1px solid var(--border); }
+/* Sidebar Desktop */
+.sidebar{
+  position: fixed;
+  top: 56px; /* altura da navbar */
+  left: 0;
+  width: var(--sidebar);
+  height: calc(100svh - 56px);
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  transition: width .2s ease;
+  z-index: 1020;
+}
+.brand-logo{ width:32px; height:32px; border-radius:50%; border:1px solid var(--border); object-fit:cover; }
+.brand-title{ font-size: 1rem; }
 
-/* Sidebar + conteúdo: sem “empurrar” indevido */
-:root{ --sidebar: 280px; --sidebar-collapsed: 64px; }
-.sidebar{ width: var(--sidebar); min-height: 100dvh; background: var(--panel); color: var(--txt); border-right:1px solid var(--border); }
-.content{ margin-left: var(--sidebar); transition: margin-left .25s ease; }
-.sidebar.sidebar-collapsed ~ .content{ margin-left: var(--sidebar-collapsed) !important; }
+.sidebar .nav-link{
+  color: var(--txt);
+  border-radius: 8px;
+  padding: .5rem .75rem;
+}
+.sidebar .nav-link:hover{ background: rgba(255,255,255,.05); }
 
-/* Mobile: sidebar some; conteúdo ocupa 100% */
-@media (max-width: 991.98px){
-  .sidebar{ display:none; }
-  .content{ margin-left: 0 !important; }
+.sidebar.sidebar-collapsed{ width: var(--sidebar-collapsed); }
+.sidebar.sidebar-collapsed .brand-title,
+.sidebar.sidebar-collapsed .nav-link span{ display:none; }
+
+/* Conteúdo: respeita sidebar no desktop */
+.content{
+  margin-left: 0;
+  margin-top: 12px;
+}
+@media (min-width: 992px){
+  .content{ margin-left: var(--sidebar); }
+  .sidebar.sidebar-collapsed + .content,
+  .sidebar.sidebar-collapsed ~ .content{
+    margin-left: var(--sidebar-collapsed) !important;
+  }
 }
 
-/* Responsivo de tabela */
-.table-responsive{ overflow-x: auto; }
-
-/* Pequenos ajustes de grid antigo (se ainda tiver) */
-.grid-3, .grid-2{
-  display: grid; gap: 12px;
-}
-.grid-3{ grid-template-columns: repeat(3, 1fr); }
-.grid-2{ grid-template-columns: repeat(2, 1fr); }
-@media (max-width: 991.98px){
-  .grid-3, .grid-2{ grid-template-columns: 1fr; }
-}
+/* Offcanvas já herda cores do .offcanvas */
+.btn-close-white{ filter: invert(1) grayscale(1); }
