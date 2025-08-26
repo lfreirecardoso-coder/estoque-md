@@ -20,6 +20,7 @@
       top: 0;
       left: 0;
       z-index: 1000;
+      color: var(--txt);
     }
     .sidebar-collapsed {
       width: 60px;
@@ -48,7 +49,7 @@
       padding: 24px;
       transition: margin-left 0.3s ease;
       color: var(--txt);
-      background: var(--bg-secondary, #1e0f0f); /* Fallback para fundo secundário */
+      background: var(--bg-secondary, var(--bg, #1e0f0f)); /* Usa bg-secondary ou bg como fallback */
     }
     .sidebar-collapsed ~ .content {
       margin-left: 60px;
@@ -62,7 +63,7 @@
       border-radius: 5px;
     }
     .btn-logout:hover {
-      background: rgba(227, 107, 107, 0.2); /* Ajuste com base em --danger se possível */
+      background: rgba(227, 107, 107, 0.2); /* Ajuste com base em --danger */
     }
     .table-wrap .btn-action {
       min-width: 96px;
@@ -103,24 +104,18 @@
       </header>
       <!-- FILTROS -->
       <section class="card flat">
-        <div class="row g-3">
-          <div class="col-12 col-md-4">
-            <div class="field">
-              <label for="fNome">Filtrar por nome</label>
-              <input id="fNome" class="form-control" placeholder="Ex.: Fio, Tomada, Cabo..."/>
-            </div>
+        <div class="grid-3">
+          <div class="field">
+            <label for="fNome">Filtrar por nome</label>
+            <input id="fNome" class="form-control" placeholder="Ex.: Fio, Tomada, Cabo..."/>
           </div>
-          <div class="col-12 col-md-4">
-            <div class="field">
-              <label for="fCategoria">Categoria</label>
-              <input id="fCategoria" class="form-control" placeholder="Ex.: Elétrica, Som..."/>
-            </div>
+          <div class="field">
+            <label for="fCategoria">Categoria</label>
+            <input id="fCategoria" class="form-control" placeholder="Ex.: Elétrica, Som..."/>
           </div>
-          <div class="col-12 col-md-4">
-            <div class="field">
-              <label for="fLocal">Local de Armazenamento</label>
-              <input id="fLocal" class="form-control" placeholder="Ex.: Caixa A1, Depósito..."/>
-            </div>
+          <div class="field">
+            <label for="fLocal">Local de Armazenamento</label>
+            <input id="fLocal" class="form-control" placeholder="Ex.: Caixa A1, Depósito..."/>
           </div>
         </div>
         <div class="actions">
