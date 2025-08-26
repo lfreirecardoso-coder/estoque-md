@@ -4,8 +4,15 @@
 
 // -------- Boot --------
 window.addEventListener('firebase-ready', () => {
+  console.log("Evento firebase-ready disparado"); // Log de depuração
   auth.onAuthStateChanged((u) => {
-    if (!u) { location.href = 'login.html'; return; }
+    console.log("Estado de autenticação:", u ? "Usuário logado" : "Nenhum usuário logado"); // Log de depuração
+    if (!u) {
+      console.log("Redirecionando para login.html"); // Log de depuração
+      location.href = 'login.html';
+      return;
+    }
+    console.log("Inicializando página para usuário logado");
     initByPage();
   });
 });
@@ -168,7 +175,7 @@ function exportarPDFsemAcoes() {
         </table>
         <script>
           window.onload = () => { window.print(); setTimeout(()=>window.close(), 400); };
-        <\/script>
+        </script>
       </body>
     </html>
   `);
