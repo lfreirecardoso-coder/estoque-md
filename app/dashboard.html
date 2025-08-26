@@ -12,7 +12,7 @@
     .sidebar {
       width: 280px;
       min-height: 100dvh;
-      background: #2b0d12;
+      background: var(--bg);
       padding: 18px;
       border-right: 1px solid var(--border);
       transition: width 0.3s ease;
@@ -35,7 +35,7 @@
       position: absolute;
       top: 10px;
       right: -40px;
-      background: #2b0d12;
+      background: var(--bg);
       border: 1px solid var(--border);
       border-left: none;
       border-radius: 0 5px 5px 0;
@@ -47,6 +47,8 @@
       margin-left: 280px;
       padding: 24px;
       transition: margin-left 0.3s ease;
+      color: var(--txt);
+      background: var(--bg-secondary, #1e0f0f); /* Fallback para fundo secundário */
     }
     .sidebar-collapsed ~ .content {
       margin-left: 60px;
@@ -60,7 +62,7 @@
       border-radius: 5px;
     }
     .btn-logout:hover {
-      background: rgba(227, 107, 107, 0.2);
+      background: rgba(227, 107, 107, 0.2); /* Ajuste com base em --danger se possível */
     }
     .table-wrap .btn-action {
       min-width: 96px;
@@ -165,15 +167,15 @@
       <div class="grid-2">
         <div class="field">
           <label>Quantidade *</label>
-          <input id="mvQtd" type="number" min="1" step="1" placeholder="Ex.: 5"/>
+          <input id="mvQtd" type="number" min="1" step="1" class="form-control" placeholder="Ex.: 5"/>
         </div>
         <div class="field">
           <label>Tipo</label>
-          <input id="mvTipo" disabled value="entrada"/>
+          <input id="mvTipo" disabled class="form-control" value="entrada"/>
         </div>
         <div class="field full">
           <label>Observação (opcional)</label>
-          <input id="mvObs" placeholder="Motivo, OS, responsável etc."/>
+          <input id="mvObs" class="form-control" placeholder="Motivo, OS, responsável etc."/>
         </div>
       </div>
       <div class="modal-actions">
