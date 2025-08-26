@@ -268,3 +268,81 @@
   height: 1rem;
   background-size: 100% 100%;
 }
+/* ====== BOTÃO HAMBÚRGUER (3 barrinhas) ====== */
+.btn-menu{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px; height: 38px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 8px;
+}
+.btn-menu:hover{ border-color: var(--primary); }
+
+.btn-menu .hamburger,
+.btn-menu .hamburger::before,
+.btn-menu .hamburger::after{
+  content: "";
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--txt);
+  border-radius: 2px;
+  position: relative;
+}
+.btn-menu .hamburger::before{ top: -6px; position: relative; }
+.btn-menu .hamburger::after{ top:  6px; position: relative; }
+
+/* Botão colapso desktop fixado na esquerda do conteúdo (opcional) */
+.toggle-desktop{
+  position: fixed;
+  top: 66px; left: calc(var(--sidebar) + 12px);
+  z-index: 1030;
+}
+.sidebar.sidebar-collapsed + .content ~ .toggle-desktop,
+.sidebar.sidebar-collapsed ~ .toggle-desktop{
+  left: calc(68px + 12px);
+}
+
+/* ====== OFFCANVAS MOBILE (dark) ====== */
+.offcanvas,
+.offcanvas .offcanvas-header,
+.offcanvas .offcanvas-body{
+  background: var(--panel);
+  color: var(--txt);
+  border-color: var(--border);
+}
+.offcanvas .offcanvas-title{ color: var(--txt); }
+.offcanvas .btn-close{ filter: invert(1) grayscale(1); }
+.offcanvas .nav .nav-link{
+  color: var(--txt);
+  border-radius: 8px;
+  padding: .55rem .75rem;
+}
+.offcanvas .nav .nav-link:hover{ background: rgba(255,255,255,.06); }
+.offcanvas .btn-logout{ width: 100%; }
+
+/* ====== TABELA DARK também no iOS/Safari ====== */
+.table-wrap{ background: var(--panel); border:1px solid var(--border); border-radius:12px; }
+.table{ color: var(--txt); margin:0; }
+.table thead th{
+  background: var(--panel-2) !important;
+  color: var(--txt) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.table, .table>:not(caption)>*>*{
+  background-color: transparent !important;
+  color: var(--txt) !important;
+  border-color: var(--border) !important;
+}
+.table-hover tbody tr:hover{ background: rgba(255,255,255,.05) !important; }
+
+/* Ajuste de conteúdo (se sua base já define isso, mantém) */
+@media (min-width: 992px){
+  .content{ margin-left: var(--sidebar); }
+  .sidebar.sidebar-collapsed + .content,
+  .sidebar.sidebar-collapsed ~ .content{
+    margin-left: var(--sidebar-collapsed) !important;
+  }
+}
