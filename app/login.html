@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estoque -MD-</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body class="login-body">
+  <div class="login-container">
+    <div class="brand">
+      <img src="logo.png" alt="Logo Ministério Deuteronômion" class="brand-logo-large">
+      <h1 class="brand-title">Estoque -MD-</h1>
+    </div>
+    <div class="card">
+      <h2 class="page-title">Entrar</h2>
+      <form id="formLogin">
+        <div class="field">
+          <label for="lEmail">E-mail</label>
+          <input type="email" id="lEmail" placeholder="Seu e-mail" required>
+        </div>
+        <div class="field">
+          <label for="lSenha">Senha</label>
+          <input type="password" id="lSenha" placeholder="Sua senha" required>
+        </div>
+        <div class="card__actions">
+          <button type="submit" class="btn">Entrar</button>
+          <span id="lMsg" class="muted"></span>
+        </div>
+      </form>
+      <a href="reset.html" class="muted">Esqueci minha senha</a>
+    </div>
+    <footer class="muted">
+      2025 © | Ministério Deuteronômion<br>
+      <p>
+      Não tem mais volta...
+    </footer>
+  </div>
+  <script src="firebase.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>

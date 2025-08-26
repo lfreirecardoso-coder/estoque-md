@@ -1,0 +1,311 @@
+/* Import da font Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* Tokens */
+:root{
+  --fundo:#46141f; /* Fundo escuro */
+  --fonte:#ffedbc; /* Texto claro */
+  --radius:14px;
+  --shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+* {box-sizing:border-box}
+html, body {height:100%}
+body {
+  margin:0; 
+  font-family: 'Poppins', Arial, Helvetica, sans-serif; 
+  color:var(--fonte); /* Texto claro */
+  background: var(--fundo); /* Fundo escuro */
+}
+
+/* Layout principal */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  padding: 20px;
+  background: var(--fundo);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.brand-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.brand::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, #46141f, #46141f);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.sidebar .nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar .nav a {
+  padding: 12px;
+  border-radius: 10px;
+  color: var(--fonte);
+  text-decoration: none;
+  display: block;
+}
+
+.sidebar .nav a.active {
+  background: rgba(255,255,255,0.2);
+}
+
+.sidebar .bottom {
+  margin-top: auto;
+}
+
+.btn-logout {
+  background: rgba(255,255,255,0.1);
+  color: var(--fonte);
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Conteúdo */
+.content {
+  flex-grow: 1;
+  padding: 20px;
+  max-width: calc(100% - 260px);
+}
+
+.page-title {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+/* Card de filtros */
+.filter-card {
+  background: rgba(255,255,255,0.05);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+
+.filter-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.filter-grid .field {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+label {
+  font-size: 14px;
+  color: var(--fonte);
+}
+
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: var(--fundo);
+  color: var(--fonte);
+}
+
+/* Botão */
+.btn {
+  background: rgba(255,255,255,0.2);
+  color: var(--fonte);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Tabela com imagem */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: rgba(255,255,255,0.05);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  color: var(--fonte);
+}
+
+.table th:first-child, .table td:first-child {
+  width: 60px;
+  padding: 5px;
+}
+
+.table img {
+  max-width: 50px;
+  max-height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
+.table thead th {
+  background: rgba(255,255,255,0.1);
+  font-weight: 600;
+}
+
+/* Media Queries para celular */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px;
+    gap: 10px;
+  }
+  .sidebar .brand {
+    margin-bottom: 0;
+  }
+  .sidebar .nav {
+    flex-direction: row;
+    gap: 5px;
+  }
+  .sidebar .nav a {
+    padding: 8px;
+    font-size: 12px;
+  }
+  .sidebar .bottom {
+    margin-top: 0;
+  }
+  .btn-logout {
+    padding: 8px;
+    font-size: 12px;
+  }
+  .content {
+    max-width: 100%;
+  }
+  .filter-grid {
+    flex-direction: column;
+  }
+  .filter-grid .field {
+    flex: 1 1 100%;
+  }
+  .table th, .table td {
+    padding: 8px;
+    font-size: 12px;
+  }
+  .page-title {
+    font-size: 24px;
+  }
+}
+/* ---------------- Botões Padronizados ---------------- */
+.form-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.btn-primary {
+  background: #8A2BE2;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #7a26c9;
+}
+
+.btn-secondary {
+  background: #555;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background: #333;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+}
+
+.image-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #f0d6c1;
+}
+
+/* ---------------- Imagem ---------------- */
+.image-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.preview-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #444;
+  margin-bottom: 10px;
+  background: #222;
+}

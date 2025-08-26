@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin • Usuários | MD Estoque</title>
+  <link rel="stylesheet" href="theme.css"/>
+  <style>
+    .role-badge{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--border);opacity:.9}
+    .role-admin{background:#ff5b6c1a;color:#ffc9cf;border-color:#ff869144}
+    .role-user{background:#5b4bff1a;color:#c9c6ff;border-color:#7b71ff44}
+    .state{opacity:.9;padding:14px;border:1px dashed var(--border);border-radius:10px}
+    .state.center{text-align:center}
+    .muted small{opacity:.8}
+    .hint-ok{color:#9BE39B}
+    .hint-warn{color:#FFD18B}
+    .hint-err{color:#FFD2D2}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar unificada -->
+    <aside class="sidebar" data-sidebar></aside>
+
+    <!-- CONTEÚDO -->
+    <main class="content" id="page-admin-users">
+      <header class="page-header">
+        <h2 class="page-title">Admin • Usuários</h2>
+        <p class="page-subtitle">
+          Vincule contas do Firebase Auth a papéis de acesso. Este painel grava <code>users/{uid}</code> no Firestore com <code>{ email, role }</code>.
+          <br><span class="muted"><small>Para descobrir o <b>UID</b> de alguém acesse: Console Firebase → Authentication → Usuários.</small></span>
+        </p>
+      </header>
+
+      <!-- FORM -->
+      <section class="card">
+        <h3 class="card__subtitle">Novo / Editar</h3>
+        <form id="formUser" novalidate>
+          <div class="grid-3">
+            <div class="field">
+              <label for="uUid">UID do usuário *</label>
+              <input id="uUid" placeholder="Ex.: rJ9Q...Hk2" required>
+            </div>
+            <div class="field">
+              <label for="uEmail">E-mail *</label>
+              <input id="uEmail" type="email" placeholder="usuario@igreja.org" required>
+            </div>
+            <div class="field">
+              <label>Papel (role) *</label>
+              <div style="display:flex;gap:14px;align-items:center;margin-top:6px">
+                <label><input type="radio" name="uRole" value="user"> Usuário</label>
+                <label><input type="radio" name="uRole" value="admin"> Admin</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <button type="button" id="btnClear" class="btn btn-ghost">Limpar</button>
+            <span id="msg" class="hint"></span>
+          </div>
+        </form>
+      </section>
+
+      <!-- LISTA -->
+      <section class="card">
+        <div class="card__header">
+          <h3 class="card__subtitle">Usuários cadastrados</h3>
+          <div class="actions">
+            <button class="btn btn-ghost" id="btnExportCsv">Exportar CSV</button>
+          </div>
+        </div>
+
+        <div id="stateBox" class="state center">Carregando usuários…</div>
+
+        <div class="table-wrap">
+          <table id="tblUsers" style="display:none">
+            <thead>
+              <tr>
+                <th>E-mail</th>
+                <th>Papel</th>
+                <th>UID</th>
+                <th class="right">Ações</th>
+              </tr>
+            </thead>
+            <tbody><!-- linhas via JS --></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- DIAGNÓSTICO -->
+      <section class="card">
+        <h3 class="card__subtitle">Diagnóstico de Permissões</h3>
+        <div id="diag" class="muted">Carregando…</div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Base -->
+  <script src="firebase.js"></script>
+  <script src="sidebar.js"></script>
+
+  <!-- Lógica -->
+  <script>
+    const $  = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    const uUid   = $('#uUid');
+    const uEmail = $('#uEmail');
+    const msg    = $('#msg');
+
+    function getRoleForm(){
+      const r = document.querySelector('input[name="uRole"]:checked');
+      return r ? r.value : '';
+    }
+    function setRoleForm(val){
+      const r = document.querySelector('input[name="uRole"][value="'+val+'"]');
+      if (r) r.checked = true;
+    }
+
+    const tbody    = $('#tblUsers tbody');
+    const tableEl  = $('#tblUsers');
+    const stateBox = $('#stateBox');
+
+    let USERS = [];
+
+    function roleBadge(role){
+      if (role === 'admin') return '<span class="role-badge role-admin">admin</span>';
+      return '<span class="role-badge role-user">user</span>';
+    }
+
+    function renderUsers(){
+      if (!USERS.length){
+        tableEl.style.display = 'none';
+        stateBox.style.display = 'block';
+        stateBox.textContent = 'Nenhum usuário cadastrado.';
+        return;
+      }
+      stateBox.style.display = 'none';
+      tableEl.style.display = '';
+
+      tbody.innerHTML = USERS.map(u => `
+        <tr data-id="${u.id}">
+          <td>${u.email || '—'}</td>
+          <td>${roleBadge(u.role || 'user')}</td>
+          <td>${u.id}</td>
+          <td class="right">
+            <button class="btn btn-ghost btn-edit" data-id="${u.id}">Editar</button>
+            <button class="btn btn-ghost btn-del" data-id="${u.id}">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+
+      $$('.btn-edit').forEach(b => b.onclick = () => fillForm(b.dataset.id));
+      $$('.btn-del').forEach(b => b.onclick  = () => removeUser(b.dataset.id));
+    }
+
+    function fillForm(uid){
+      const u = USERS.find(x => x.id === uid);
+      if (!u) return;
+      uUid.value   = u.id;
+      uEmail.value = u.email || '';
+      setRoleForm(u.role || 'user');
+      msg.textContent = '';
+      msg.className = 'hint';
+      uUid.focus();
+    }
+
+    function clearForm(){
+      uUid.value = '';
+      uEmail.value = '';
+      setRoleForm('user');
+      msg.textContent = '';
+      msg.className = 'hint';
+      uUid.focus();
+    }
+    $('#btnClear').onclick = clearForm;
+
+    async function saveUser(e){
+      e.preventDefault();
+      msg.textContent = '';
+      msg.className = 'hint';
+
+      const uid = uUid.value.trim();
+      const email = uEmail.value.trim();
+      const role = getRoleForm();
+
+      if (!uid || !email || !role){
+        msg.textContent = 'Preencha UID, e-mail e papel.';
+        msg.className = 'hint hint-warn';
+        return;
+      }
+
+      try{
+        await db.collection('users').doc(uid).set({ email, role }, { merge:true });
+        msg.textContent = 'Salvo com sucesso.';
+        msg.className = 'hint hint-ok';
+        clearForm();
+      }catch(err){
+        console.error(err);
+        msg.textContent = err.message || 'Falha ao salvar.';
+        msg.className = 'hint hint-err';
+      }
+    }
+    $('#formUser').addEventListener('submit', saveUser);
+
+    async function removeUser(uid){
+      if (!confirm('Remover o vínculo do usuário? (Não apaga a conta do Auth)')) return;
+      try{
+        await db.collection('users').doc(uid).delete();
+      }catch(err){
+        alert('Erro ao excluir: ' + (err.message || err));
+      }
+    }
+
+    function watchUsers(){
+      db.collection('users').orderBy('email').onSnapshot(snap=>{
+        USERS = [];
+        snap.forEach(doc => USERS.push({ id:doc.id, ...doc.data() }));
+        renderUsers();
+      }, err=>{
+        console.error(err);
+        stateBox.style.display = 'block';
+        tableEl.style.display  = 'none';
+        stateBox.textContent   = 'Erro ao carregar: ' + (err.message || err);
+      });
+    }
+
+    // Exportar CSV
+    $('#btnExportCsv').onclick = () => {
+      if (!USERS.length) return;
+      const rows = [['email','role','uid'], ...USERS.map(u => [u.email||'', u.role||'', u.id])];
+      const csv  = rows.map(r => r.map(v => `"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `usuarios_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    };
+
+    // Diagnóstico
+    function loadDiag(){
+      const out = $('#diag');
+      const u = auth.currentUser;
+      if (!u){ out.textContent = 'Não autenticado.'; return; }
+
+      db.collection('users').doc(u.uid).get().then(snap=>{
+        const role = snap.exists ? (snap.data().role || 'user') : '—';
+        const okAdmin = role === 'admin';
+        out.innerHTML = `
+          <div><b>UID:</b> ${u.uid}</div>
+          <div><b>E-mail:</b> ${u.email || '—'}</div>
+          <div><b>Role:</b> <span class="${okAdmin?'hint-ok':'hint-warn'}">${role}</span></div>
+          <div class="muted" style="margin-top:6px">
+            As regras de Firestore do seu projeto exigem <code>request.auth != null</code> para ler/escrever,
+            e para escrever em coleções críticas (itens/movimentacoes) exigem <code>role=admin</code> em <code>users/{uid}</code>.
+          </div>
+        `;
+      }).catch(err=>{
+        out.innerHTML = `<span class="hint-err">Erro ao ler seu papel: ${err.message || err}</span>`;
+      });
+    }
+
+    // Start
+    window.addEventListener('firebase-ready', () => {
+      auth.onAuthStateChanged(u=>{
+        if(!u){ location.href = 'login.html'; return; }
+        watchUsers();
+        loadDiag();
+      });
+    });
+  </script>
+</body>
+</html>

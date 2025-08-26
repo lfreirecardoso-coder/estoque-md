@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Estoque | Cadastro Base</title>
+  <link rel="stylesheet" href="theme.css"/>
+
+  <!-- Complemento visual só desta página (se preferir, mova para theme.css) -->
+  <style>
+    .grid-3{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(280px,1fr))}
+    @media (max-width:1000px){.grid-3{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:720px){.grid-3{grid-template-columns:1fr}}
+
+    .row{display:flex;gap:10px;align-items:center}
+    .row input{flex:1}
+
+    .list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:999px;
+      background:rgba(255,255,255,.08); border:1px solid var(--border);
+      color:var(--text);
+    }
+    .chip button{
+      border:0; background:transparent; color:var(--text-muted);
+      cursor:pointer; padding:0 2px; line-height:1;
+    }
+    .chip button:hover{ color:var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar unificada -->
+    <aside class="sidebar" data-sidebar></aside>
+
+    <!-- CONTEÚDO -->
+    <main class="content" id="page-base">
+      <header class="page-header">
+        <h2 class="page-title">Cadastro Base | Listas Mestras</h2>
+        <p class="page-subtitle">
+          Gerencie as listas usadas nos formulários: <b>Categorias</b>, <b>Locais</b> e <b>Unidades</b>.
+        </p>
+      </header>
+
+      <div class="grid-3">
+        <!-- CATEGORIAS -->
+        <section class="card flat">
+          <h3 class="card__subtitle">Categorias</h3>
+          <div class="row">
+            <input id="catInput" placeholder="Ex.: Elétrica, Hidráulica, Som..."/>
+            <button class="btn btn-primary" id="catAdd">Adicionar</button>
+          </div>
+          <div class="list" id="catList"></div>
+          <p class="hint" style="margin-top:8px">Dica: famílias de itens (Elétrica, Hidráulica, Ferramentas...)</p>
+        </section>
+
+        <!-- LOCAIS -->
+        <section class="card flat">
+          <h3 class="card__subtitle">Locais de Armazenamento</h3>
+          <div class="row">
+            <input id="locInput" placeholder="Ex.: Depósito, Caixa 1, Caixa 2..."/>
+            <button class="btn btn-primary" id="locAdd">Adicionar</button>
+          </div>
+          <div class="list" id="locList"></div>
+          <p class="hint" style="margin-top:8px">Dica: caixas, prateleiras, salas…</p>
+        </section>
+
+        <!-- UNIDADES -->
+        <section class="card flat">
+          <h3 class="card__subtitle">Unidades</h3>
+          <div class="row">
+            <input id="uniInput" placeholder="Ex.: UN, m, kg, cx, rolo..."/>
+            <button class="btn btn-primary" id="uniAdd">Adicionar</button>
+          </div>
+          <div class="list" id="uniList"></div>
+          <p class="hint" style="margin-top:8px">Sugestões: UN, m, cm, mm, kg, g, L, m², m³, rolo, cx, pct, par, kit…</p>
+        </section>
+      </div>
+
+      <div class="actions" style="margin-top:18px">
+        <a class="btn btn-ghost" href="novo.html">Voltar para o cadastro</a>
+        <span id="status" class="hint"></span>
+      </div>
+    </main>
+  </div>
+
+  <!-- Firebase + Sidebar -->
+  <script src="firebase.js"></script>
+  <script src="sidebar.js"></script>
+
+  <!-- Lógica -->
+  <script>
+    // Estrutura no Firestore:
+    // coleção "config"  → docs "categorias" | "locais" | "unidades"  com { items: [...] }
+    const CFG_COL = 'config';
+    const DOCS = {
+      categorias: ['Elétrica','Hidráulica','Ferramentas','Som','TI','Pintura','Jardinagem'],
+      locais: ['Depósito','Caixa 1','Caixa 2','Caixa 3','Sala 1','Sala 2','Prateleira A','Prateleira B'],
+      unidades: ['UN','pct','cx','kit','par','m','cm','mm','m²','m³','kg','g','L','mL','rolo','bobina','peça']
+    };
+
+    const status = msg => document.getElementById('status').textContent = msg || '';
+
+    async function ensureDoc(id, defaults){
+      const ref = db.collection(CFG_COL).doc(id);
+      const snap = await ref.get();
+      if(!snap.exists) await ref.set({ items: defaults });
+    }
+
+    async function renderList(docId, listEl){
+      const snap = await db.collection(CFG_COL).doc(docId).get();
+      const arr = (snap.data()?.items || []).slice().sort((a,b)=>a.localeCompare(b));
+      listEl.innerHTML = '';
+
+      arr.forEach(item=>{
+        const el = document.createElement('span');
+        el.className = 'chip';
+        el.innerHTML = `${item} <button title="Remover" aria-label="Remover ${item}">✕</button>`;
+        el.querySelector('button').onclick = async () =>{
+          await db.collection(CFG_COL).doc(docId).set({ items: arr.filter(x=>x!==item) });
+          renderAll();
+        };
+        listEl.appendChild(el);
+      });
+    }
+
+    async function renderAll(){
+      await ensureDoc('categorias', DOCS.categorias);
+      await ensureDoc('locais', DOCS.locais);
+      await ensureDoc('unidades', DOCS.unidades);
+
+      await Promise.all([
+        renderList('categorias', document.getElementById('catList')),
+        renderList('locais', document.getElementById('locList')),
+        renderList('unidades', document.getElementById('uniList')),
+      ]);
+      status('Listas carregadas.');
+    }
+
+    async function addItem(docId, inputEl){
+      const val = (inputEl.value || '').trim();
+      if(!val) return;
+      const ref = db.collection(CFG_COL).doc(docId);
+      await ensureDoc(docId, DOCS[docId]);
+      await ref.update({ items: firebase.firestore.FieldValue.arrayUnion(val) });
+      inputEl.value = '';
+      renderAll();
+    }
+
+    // start
+    window.addEventListener('firebase-ready', ()=>{
+      auth.onAuthStateChanged(u=>{
+        if(!u){ location.href='login.html'; return; }
+
+        renderAll();
+
+        document.getElementById('catAdd').onclick = ()=>addItem('categorias', document.getElementById('catInput'));
+        document.getElementById('locAdd').onclick = ()=>addItem('locais', document.getElementById('locInput'));
+        document.getElementById('uniAdd').onclick = ()=>addItem('unidades', document.getElementById('uniInput'));
+
+        document.getElementById('btnLogout')?.addEventListener('click', ()=>{
+          auth.signOut().then(()=>location.href='login.html');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

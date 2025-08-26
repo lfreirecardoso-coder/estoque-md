@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Estoque | Dashboard</title>
+  <link rel="stylesheet" href="theme.css"/>
+
+  <!-- Padroniza o tamanho dos botões de ação -->
+  <style>
+    /* pode mover para o theme.css se preferir */
+    .table-wrap .btn-action{
+      min-width: 96px;
+      text-align: center;
+      padding: 8px 12px;
+    }
+    @media (max-width: 900px){
+      .table-wrap .btn-action{
+        min-width: 84px;
+        padding: 6px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar unificada -->
+    <aside class="sidebar" data-sidebar></aside>
+
+    <!-- CONTEÚDO -->
+    <main class="content" id="page-dashboard">
+      <header class="page-header">
+        <h2 class="page-title">Estoque | Dashboard</h2>
+        <p class="page-subtitle">
+          Filtre, exporte e movimente itens do estoque. Clique na imagem para pré-visualizar.
+        </p>
+      </header>
+
+      <!-- FILTROS -->
+      <section class="card flat">
+        <div class="grid-3">
+          <div class="field">
+            <label for="fNome">Filtrar por nome</label>
+            <input id="fNome" placeholder="Ex.: Fio, Tomada, Cabo..."/>
+          </div>
+          <div class="field">
+            <label for="fCategoria">Categoria</label>
+            <input id="fCategoria" placeholder="Ex.: Elétrica, Som..."/>
+          </div>
+          <div class="field">
+            <label for="fLocal">Local de Armazenamento</label>
+            <input id="fLocal" placeholder="Ex.: Caixa A1, Depósito..."/>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="btnCsv">Exportar CSV</button>
+          <button type="button" class="btn btn-ghost" id="btnPdf">Exportar PDF</button>
+        </div>
+      </section>
+
+      <!-- TABELA -->
+      <section class="table-wrap">
+        <table id="tblItens">
+          <thead>
+            <tr>
+              <th>Imagem</th>
+              <th>Nome</th>
+              <th>Categoria</th>
+              <th>Qtd</th>
+              <th>Unid.</th>
+              <th>Local</th>
+              <th class="right">Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: imagem -->
+  <div class="modal" id="modalImg">
+    <div class="modal-card" style="max-width:720px">
+      <div class="modal-header">
+        <h3 class="modal-title">Imagem do item</h3>
+        <button class="btn btn-ghost" id="closeImg">Fechar</button>
+      </div>
+      <img id="bigImg" src="" alt="Imagem do item" style="width:100%;border-radius:10px;border:1px solid var(--border)"/>
+    </div>
+  </div>
+
+  <!-- MODAL: movimentação -->
+  <div class="modal" id="modalMov">
+    <div class="modal-card" style="max-width:520px">
+      <div class="modal-header">
+        <h3 class="modal-title" id="movTitle">Movimentar</h3>
+        <button class="btn btn-ghost" id="closeMov">Fechar</button>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Quantidade *</label>
+          <input id="mvQtd" type="number" min="1" step="1" placeholder="Ex.: 5"/>
+        </div>
+        <div class="field">
+          <label>Tipo</label>
+          <input id="mvTipo" disabled value="entrada"/>
+        </div>
+        <div class="field full">
+          <label>Observação (opcional)</label>
+          <input id="mvObs" placeholder="Motivo, OS, responsável etc."/>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btnConfirmMov">Confirmar</button>
+      </div>
+      <p class="hint" id="mvMsg" style="margin-top:8px"></p>
+    </div>
+  </div>
+
+  <!-- BASE -->
+  <script src="firebase.js"></script>
+  <script src="sidebar.js"></script>
+
+  <!-- LÓGICA -->
+  <script>
+    const $  = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    const fNome = $('#fNome');
+    thead = null;
+    const fCategoria = $('#fCategoria');
+    const fLocal = $('#fLocal');
+    const tbody = $('#tblItens tbody');
+
+    // Modais
+    const modalImg = $('#modalImg');
+    const bigImg   = $('#bigImg');
+    $('#closeImg').onclick = () => modalImg.classList.remove('open');
+
+    const modalMov = $('#modalMov');
+    const mvQtd = $('#mvQtd');
+    const mvObs = $('#mvObs');
+    const mvMsg = $('#mvMsg');
+    const mvTipoInput = $('#mvTipo');
+    const movTitle = $('#movTitle');
+    $('#closeMov').onclick = () => modalMov.classList.remove('open');
+
+    let ITENS_CACHE = [];
+    let MOV_ITEM = null; // item alvo da movimentação
+    let MOV_TIPO = 'entrada';
+
+    function openImg(url){
+      bigImg.src = url || '';
+      modalImg.classList.add('open');
+    }
+    window.openImg = openImg; // para usar no onclick inline
+
+    function n(v){ return typeof v==='number' ? v : (Number(v)||0); }
+
+    // Render da tabela com filtros
+    function render(){
+      const qNome = fNome.value.trim().toLowerCase();
+      const qCat  = fCategoria.value.trim().toLowerCase();
+      const qLoc  = fLocal.value.trim().toLowerCase();
+
+      const rows = ITENS_CACHE.filter(i=>{
+        const okN = !qNome || (i.nome||'').toLowerCase().includes(qNome);
+        const okC = !qCat  || (i.categoria||'').toLowerCase().includes(qCat);
+        const okL = !qLoc  || (i.local||'').toLowerCase().includes(qLoc);
+        return okN && okC && okL;
+      }).map(i=>{
+        const img = i.imageUrl
+          ? `<img class="thumb" src="${i.imageUrl}" alt="${i.nome}" onclick="openImg('${i.imageUrl.replace(/'/g,"\\'")}')">`
+          : `<img class="thumb" src="sem-imagem.png" alt="sem imagem">`;
+
+        return `
+          <tr data-id="${i.id}">
+            <td>${img}</td>
+            <td>${i.nome || '-'}</td>
+            <td>${i.categoria || '-'}</td>
+            <td>${n(i.qtd)}</td>
+            <td>${i.unidade || '-'}</td>
+            <td>${i.local || '-'}</td>
+            <td class="right">
+              <button class="btn btn-primary btn-action btn-entrada" data-id="${i.id}">Entrada</button>
+              <button class="btn btn-danger  btn-action btn-saida"   data-id="${i.id}">Saída</button>
+              <a class="btn btn-ghost btn-action" href="novo.html?id=${i.id}">Editar</a>
+              <button class="btn btn-ghost btn-action btn-excluir" data-id="${i.id}">Excluir</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rows;
+
+      // Liga botões
+      $$('.btn-entrada').forEach(b => b.onclick = () => openMov(b.dataset.id, 'entrada'));
+      $$('.btn-saida').forEach(b => b.onclick   = () => openMov(b.dataset.id, 'saida'));
+      $$('.btn-excluir').forEach(b => b.onclick = () => excluirItem(b.dataset.id));
+    }
+
+    function openMov(id, tipo){
+      const item = ITENS_CACHE.find(x => x.id === id);
+      if (!item) return;
+      MOV_ITEM = item;
+      MOV_TIPO = tipo;
+      mvQtd.value = '';
+      mvObs.value = '';
+      mvMsg.textContent = '';
+      mvMsg.style.color = '';
+      mvTipoInput.value = tipo;
+      movTitle.textContent = `${tipo==='entrada'?'Entrada':'Saída'} — ${item.nome} (estoque: ${n(item.qtd)})`;
+      modalMov.classList.add('open');
+    }
+
+    async function confirmarMov(){
+      if(!MOV_ITEM) return;
+      const qtd = Number(mvQtd.value);
+      if(!qtd || qtd < 1){
+        mvMsg.textContent = 'Informe uma quantidade válida.';
+        mvMsg.style.color = '#FFD2D2';
+        return;
+      }
+      const obs  = mvObs.value.trim();
+      const tipo = MOV_TIPO;
+
+      const user = auth.currentUser;
+      if(!user){ location.href='login.html'; return; }
+
+      const itemRef = db.collection('itens').doc(MOV_ITEM.id);
+      const movRef  = db.collection('movimentacoes').doc();
+
+      try{
+        await db.runTransaction(async t=>{
+          const snap = await t.get(itemRef);
+          if(!snap.exists) throw new Error('Item não encontrado.');
+
+          const atual = Number(snap.data().qtd || 0);
+          const novo  = (tipo === 'entrada') ? (atual + qtd) : (atual - qtd);
+          if (novo < 0) throw new Error(`Estoque insuficiente: atual ${atual}.`);
+
+          const inc = firebase.firestore.FieldValue.increment(tipo === 'entrada' ? qtd : -qtd);
+          t.update(itemRef, { qtd: inc });
+
+          t.set(movRef, {
+            itemId: MOV_ITEM.id,
+            itemNome: MOV_ITEM.nome || '',
+            tipo, qtd,
+            obs: obs || '',
+            usuario: user.uid,
+            usuarioNome: user.email || user.displayName || '',
+            data: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        });
+
+        mvMsg.textContent = 'Movimentação registrada!';
+        mvMsg.style.color = '#9BE39B';
+        setTimeout(()=> modalMov.classList.remove('open'), 700);
+      }catch(err){
+        console.error(err);
+        mvMsg.textContent = err.message || 'Erro ao movimentar.';
+        mvMsg.style.color = '#FFD2D2';
+      }
+    }
+    $('#btnConfirmMov').onclick = confirmarMov;
+
+    async function excluirItem(id){
+      if(!confirm('Tem certeza que deseja excluir este item?')) return;
+      try{
+        await db.collection('itens').doc(id).delete();
+      }catch(e){
+        alert('Erro ao excluir: ' + (e.message || e));
+      }
+    }
+
+    // Exportações
+    function exportCSV(){
+      const ths = $$('#tblItens thead th').map(th=>th.textContent.trim());
+      const trs = Array.from(tbody.querySelectorAll('tr')).map(tr =>
+        Array.from(tr.children).slice(0,6).map(td => `"${(td.textContent||'').replaceAll('"','""')}"`).join(',')
+      );
+      const csv = [ths.slice(0,6).join(','), ...trs].join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `estoque_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+    function exportPDF(){ window.print(); }
+
+    $('#btnCsv').onclick = exportCSV;
+    $('#btnPdf').onclick = exportPDF;
+
+    // Filtros
+    [fNome,fCategoria,fLocal].forEach(el => el.addEventListener('input', render));
+
+    // Watch itens em tempo real
+    function watchItens(){
+      db.collection('itens').orderBy('nome').onSnapshot(snap=>{
+        ITENS_CACHE = [];
+        snap.forEach(doc => ITENS_CACHE.push({ id: doc.id, ...doc.data() }));
+        render();
+      }, err => {
+        console.error('Erro ao carregar itens:', err);
+        tbody.innerHTML = `<tr><td colspan="7">Erro ao carregar: ${err.message}</td></tr>`;
+      });
+    }
+
+    // Start
+    window.addEventListener('firebase-ready', () => {
+      auth.onAuthStateChanged(u=>{
+        if(!u){ location.href='login.html'; return; }
+        watchItens();
+      });
+    });
+  </script>
+</body>
+</html>

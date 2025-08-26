@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Log de Movimentações | MD Estoque</title>
+  <link rel="stylesheet" href="theme.css"/>
+  <style>
+    /* Badges Entrada/Saída */
+    .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:600}
+    .badge.in  {background:#5b4bff1a;color:#b9b4ff;border:1px solid #6f63ff44}
+    .badge.out {background:#ff5b6c1a;color:#ffb7bf;border:1px solid #ff7e8b44}
+    /* Estados */
+    .state {opacity:.85;padding:14px;border-radius:10px;border:1px dashed var(--border)}
+    .state.center {text-align:center}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar unificada -->
+    <aside class="sidebar" data-sidebar></aside>
+
+    <!-- Conteúdo -->
+    <main class="content" id="page-mov">
+      <header class="page-header">
+        <h2 class="page-title">Log de Movimentações</h2>
+        <p class="page-subtitle">
+          Histórico de <strong>entradas</strong> e <strong>saídas</strong>. Use os filtros para localizar.
+        </p>
+      </header>
+
+      <!-- Filtros -->
+      <section class="card flat">
+        <div class="grid-3">
+          <div class="field">
+            <label for="fItem">Filtrar por item</label>
+            <input id="fItem" placeholder="Ex.: Fio, Cabo...">
+          </div>
+
+          <div class="field">
+            <label for="fTipo">Tipo</label>
+            <select id="fTipo">
+              <option value="">Todos</option>
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="fUsuario">Usuário</label>
+            <input id="fUsuario" placeholder="Ex.: João, Maria...">
+          </div>
+
+          <div class="field">
+            <label for="fDataDe">Data (de)</label>
+            <input id="fDataDe" type="date">
+          </div>
+
+          <div class="field">
+            <label for="fDataAte">Data (até)</label>
+            <input id="fDataAte" type="date">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="btnCsvMov">Exportar CSV</button>
+          <button type="button" class="btn btn-ghost" id="btnPdfMov">Exportar PDF</button>
+          <button type="button" class="btn btn-ghost" id="btnClearFiltros">Limpar Filtros</button>
+        </div>
+      </section>
+
+      <!-- Tabela -->
+      <section class="table-wrap">
+        <div id="stateBox" class="state center">Carregando movimentações…</div>
+        <table id="tblMovs" style="display:none">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Item</th>
+              <th>Tipo</th>
+              <th>Qtd</th>
+              <th>Usuário</th>
+              <th>Obs.</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <!-- scripts base -->
+  <script src="firebase.js"></script>
+  <script src="sidebar.js"></script>
+
+  <!-- lógica da página -->
+  <script>
+    const $  = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    const fItem    = $('#fItem');
+    const fTipo    = $('#fTipo');
+    const fUsuario = $('#fUsuario');
+    const fDataDe  = $('#fDataDe');
+    const fDataAte = $('#fDataAte');
+
+    const stateBox = $('#stateBox');
+    const table    = $('#tblMovs');
+    const tbody    = $('#tblMovs tbody');
+
+    let MOV_CACHE = [];
+    let FIRST_SNAPSHOT = true;
+
+    function fmtDate(ts){
+      try{
+        const d = ts?.toDate ? ts.toDate() : (ts instanceof Date ? ts : new Date(ts));
+        if (isNaN(d)) return '--/--/---- --:--';
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const yyyy = d.getFullYear();
+        const hh = String(d.getHours()).padStart(2,'0');
+        const mi = String(d.getMinutes()).padStart(2,'0');
+        return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
+      }catch(_){ return '--/--/---- --:--'; }
+    }
+
+    function render(){
+      const qItem = fItem.value.trim().toLowerCase();
+      const qTipo = fTipo.value;
+      const qUser = fUsuario.value.trim().toLowerCase();
+
+      const ini = fDataDe.value ? new Date(fDataDe.value + 'T00:00:00') : null;
+      const fim = fDataAte.value ? new Date(fDataAte.value + 'T23:59:59.999') : null;
+
+      const rows = MOV_CACHE.filter(m=>{
+        const okItem = !qItem || (m.itemNome||'').toLowerCase().includes(qItem);
+        const okTipo = !qTipo || m.tipo === qTipo;
+        const okUser = !qUser || (m.usuarioNome||'').toLowerCase().includes(qUser) || (m.usuario||'').toLowerCase().includes(qUser);
+        let okData = true;
+        if (ini || fim) {
+          const d = m.data?.toDate ? m.data.toDate() : new Date(m.data);
+          if (ini && d < ini) okData = false;
+          if (fim && d > fim) okData = false;
+        }
+        return okItem && okTipo && okUser && okData;
+      });
+
+      if (rows.length === 0) {
+        table.style.display = 'none';
+        stateBox.style.display = 'block';
+        stateBox.textContent = 'Nenhuma movimentação encontrada.';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(m=>`
+        <tr>
+          <td>${fmtDate(m.data)}</td>
+          <td>${m.itemNome || '—'}</td>
+          <td><span class="badge ${m.tipo==='entrada'?'in':'out'}">${m.tipo==='entrada'?'Entrada':'Saída'}</span></td>
+          <td>${m.qtd}</td>
+          <td>${m.usuarioNome || m.usuario || '—'}</td>
+          <td>${m.obs ? m.obs.replace(/</g,'&lt;') : ''}</td>
+        </tr>
+      `).join('');
+
+      stateBox.style.display = 'none';
+      table.style.display = '';
+    }
+
+    function clearFiltros(){
+      fItem.value = '';
+      fTipo.value = '';
+      fUsuario.value = '';
+      fDataDe.value = '';
+      fDataAte.value = '';
+      render();
+    }
+
+    function exportCSV(e){
+      e.preventDefault();
+      const ths = $$('#tblMovs thead th').map(th=>th.textContent.trim());
+      const trs = Array.from(tbody.querySelectorAll('tr')).map(tr =>
+        Array.from(tr.children).map(td => '"' + (td.textContent||'').replaceAll('"','""') + '"').join(',')
+      );
+      const csv = [ths.join(','), ...trs].join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `movimentacoes_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    function exportPDF(e){ e.preventDefault(); window.print(); }
+
+    function watchMovs(){
+      // requer que os docs tenham o campo "data" (Timestamp)
+      db.collection('movimentacoes').orderBy('data','desc').limit(800).onSnapshot(snap=>{
+        MOV_CACHE = [];
+        snap.forEach(doc => MOV_CACHE.push({ id:doc.id, ...doc.data() }));
+        if (FIRST_SNAPSHOT){
+          FIRST_SNAPSHOT = false;
+          if (MOV_CACHE.length === 0) {
+            stateBox.textContent = 'Nenhuma movimentação encontrada.';
+            table.style.display = 'none';
+            stateBox.style.display = 'block';
+            return;
+          }
+        }
+        render();
+      }, err=>{
+        console.error(err);
+        table.style.display = 'none';
+        stateBox.style.display = 'block';
+        stateBox.textContent = 'Erro ao carregar: ' + (err.message || err);
+      });
+    }
+
+    [fItem,fTipo,fUsuario,fDataDe,fDataAte].forEach(el => el.addEventListener('input', render));
+    $('#btnCsvMov').addEventListener('click', exportCSV);
+    $('#btnPdfMov').addEventListener('click', exportPDF);
+    $('#btnClearFiltros').addEventListener('click', clearFiltros);
+
+    // start
+    window.addEventListener('firebase-ready', ()=>{
+      auth.onAuthStateChanged(u=>{
+        if(!u){ location.href='login.html'; return; }
+        stateBox.textContent = 'Carregando movimentações…';
+        watchMovs();
+      });
+    });
+  </script>
+</body>
+</html>
