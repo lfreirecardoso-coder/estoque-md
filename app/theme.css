@@ -1,4 +1,4 @@
-/* ====== Tema Dark base (padroniza tudo) ====== */
+/* ====== Tema Dark base ====== */
 :root{
   --bg: #1a0e0e;
   --bg-secondary: #211010;
@@ -15,12 +15,11 @@
   --sidebar-collapsed: 68px;
 }
 
-/* Safe-area (iPhone) + altura real em mobile */
 .app-body{
   background: var(--bg);
   color: var(--txt);
   min-height: 100svh;
-  min-height: 100vh; /* fallback */
+  min-height: 100vh;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
@@ -29,19 +28,39 @@
   overflow-x: hidden;
 }
 
-/* Cartões, modais, menus no mesmo tom */
+/* Navbar topo */
+.navbar{
+  background: var(--bg);
+  border-color: var(--border)!important;
+}
+.navbar-brand{ color: var(--txt)!important; }
+
+/* Botão hambúrguer claro (desktop + mobile) */
+.btn-hamb{
+  width: 40px; height: 32px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  gap: 3px;
+}
+.btn-hamb:hover{ border-color: var(--primary); }
+.hamb-bar{
+  display:block; width:18px; height:2px;
+  background: rgba(255,255,255,.9);
+}
+
+/* Cartões/menus/tabelas com tema */
 .card, .modal-content, .offcanvas, .dropdown-menu{
   background: var(--panel);
   color: var(--txt);
   border: 1px solid var(--border);
 }
-.navbar{ background: transparent; }
-
-/* Títulos e subtítulos */
+.text-muted{ color: var(--muted)!important; }
 .page-title{ color: var(--txt); }
-.text-muted{ color: var(--muted) !important; }
 
-/* Inputs e selects */
+/* Inputs / selects */
 .form-control, .form-select{
   background: var(--panel-2);
   color: var(--txt);
@@ -55,7 +74,7 @@
 }
 .form-control::placeholder{ color: #bca6a6; }
 
-/* Botões “ghost” e estados principais */
+/* Botões */
 .btn-ghost{
   background: transparent;
   border: 1px solid var(--border);
@@ -65,17 +84,13 @@
   border-color: var(--primary);
   color: var(--primary);
 }
-.btn-primary{
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #2b1515;
-}
+.btn-primary{ background: var(--primary); border-color: var(--primary); color:#2b1515; }
 .btn-danger{ background: var(--danger); border-color: var(--danger); }
 .btn-success{ background: var(--success); border-color: var(--success); color:#0f2b19; }
 
 /* Tabela */
 .table-wrap{ background: var(--panel); border:1px solid var(--border); border-radius:12px; }
-.table{ color: var(--txt); margin:0; }
+.table{ color: var(--txt); }
 .table thead th{
   background: var(--panel-2);
   color: var(--txt);
@@ -90,7 +105,7 @@
 /* Sidebar Desktop */
 .sidebar{
   position: fixed;
-  top: 56px; /* altura da navbar */
+  top: 56px;
   left: 0;
   width: var(--sidebar);
   height: calc(100svh - 56px);
@@ -100,61 +115,55 @@
   border-right: 1px solid var(--border);
   transition: width .2s ease;
   z-index: 1020;
+  padding: 12px;
 }
 .brand-logo{ width:32px; height:32px; border-radius:50%; border:1px solid var(--border); object-fit:cover; }
-.brand-title{ font-size: 1rem; }
+.brand-title{ font-size: 1rem; margin-left: 8px; }
 
-.sidebar .nav-link{
+.sidebar .nav a{
+  display:block;
   color: var(--txt);
   border-radius: 8px;
-  padding: .5rem .75rem;
+  padding: .55rem .75rem;
+  text-decoration: none;
 }
-.sidebar .nav-link:hover{ background: rgba(255,255,255,.05); }
+.sidebar .nav a:hover{ background: rgba(255,255,255,.05); }
+.sidebar .nav a.active{ outline:1px solid var(--primary); }
 
 .sidebar.sidebar-collapsed{ width: var(--sidebar-collapsed); }
 .sidebar.sidebar-collapsed .brand-title,
-.sidebar.sidebar-collapsed .nav-link span{ display:none; }
+.sidebar.sidebar-collapsed .nav a span{ display:none; }
 
-/* Conteúdo: respeita sidebar no desktop */
+/* Footer da sidebar (botão sair) */
+.sidebar-footer{
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.btn-logout{
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: .5rem .75rem;
+  border-radius: 8px;
+}
+.btn-logout:hover{
+  background: rgba(242,106,106,.12);
+}
+
+/* Conteúdo respeita sidebar no desktop */
 .content{
   margin-left: 0;
-  margin-top: 70px; /* dá espaço para a navbar fixa */
+  margin-top: 12px;
+  padding: 12px 16px;
 }
 @media (min-width: 992px){
   .content{ margin-left: var(--sidebar); }
   .sidebar.sidebar-collapsed + .content,
   .sidebar.sidebar-collapsed ~ .content{
-    margin-left: var(--sidebar-collapsed) !important;
+    margin-left: var(--sidebar-collapsed)!important;
   }
 }
 
-/* Offcanvas já herda cores do .offcanvas */
+/* Fechar dos modais claro */
 .btn-close-white{ filter: invert(1) grayscale(1); }
-
-/* ===== AJUSTES NOVOS ===== */
-
-/* Deixa a navbar combinar melhor com o tema */
-.navbar {
-  backdrop-filter: blur(2px);
-  border-bottom: 1px solid var(--border) !important;
-}
-
-/* Garante visibilidade do ícone do hamburguer em tema escuro */
-.navbar-toggler {
-  border-color: var(--border);
-}
-.navbar-toggler-icon {
-  filter: invert(1) grayscale(1);
-}
-
-/* Cards “flat” coerentes com o tema */
-.card.flat{ background: var(--panel); border:1px solid var(--border); }
-
-/* Offcanvas cores (já herdadas, mas forçamos placeholders) */
-.offcanvas .nav-link{ color: var(--txt); }
-.offcanvas .nav-link:hover{ background: rgba(255,255,255,.06); border-radius:8px; }
-
-/* Evita qualquer fundo branco padrão do Bootstrap em tabelas */
-.table-responsive, .table, .table-striped>tbody>tr:nth-of-type(odd) {
-  background: transparent !important;
-}
