@@ -29,12 +29,12 @@
 
   // Injeta HTML
   const mount = document.querySelector('[data-sidebar-content]');
-  if (!mount) {
+  if (mount) {
+    mount.innerHTML = html;
+    console.log("Sidebar injetada com sucesso");
+  } else {
     console.error("Elemento [data-sidebar-content] não encontrado");
-    return;
   }
-  mount.innerHTML = html;
-  console.log("Sidebar injetada com sucesso");
 
   // Marca ativo
   const here = (location.pathname.split('/').pop() || 'dashboard.html').toLowerCase();
@@ -71,16 +71,16 @@
   // Wire do logout
   function wireLogout() {
     const btn = document.getElementById('btnLogout');
-    if (!btn) {
+    if (btn) {
+      btn.onclick = () => {
+        window.auth.signOut().then(() => {
+          console.log("Logout realizado, redirecionando para login.html");
+          location.href = 'login.html';
+        }).catch(err => console.error("Erro no logout:", err));
+      };
+    } else {
       console.warn("Botão #btnLogout não encontrado");
-      return;
     }
-    btn.onclick = () => {
-      window.auth.signOut().then(() => {
-        console.log("Logout realizado, redirecionando para login.html");
-        location.href = 'login.html';
-      }).catch(err => console.error("Erro no logout:", err));
-    };
   }
   wireLogout();
 
