@@ -1,4 +1,4 @@
-/* ====== Tema Dark base ====== */
+/* ====== Tema Dark base (padroniza tudo) ====== */
 :root{
   --bg: #1a0e0e;
   --bg-secondary: #211010;
@@ -15,33 +15,77 @@
   --sidebar-collapsed: 68px;
 }
 
-/* Base */
+/* Safe-area (iPhone) + altura real em mobile */
 .app-body{
   background: var(--bg);
   color: var(--txt);
   min-height: 100svh;
+  min-height: 100vh; /* fallback */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* Navbar + Offcanvas */
+/* NAVBAR */
 .navbar{
   background: var(--bg);
-  border-bottom: 1px solid var(--border) !important;
+  border-bottom: 1px solid var(--border);
 }
-.offcanvas, .modal-content, .dropdown-menu{
+.navbar .navbar-brand{
+  color: var(--txt);
+  font-weight: 600;
+}
+.navbar .btn-logout-top{
+  color: var(--txt);
+  border: 1px solid var(--border);
+  background: transparent;
+}
+.navbar .btn-logout-top:hover{
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* “Hambúrguer” claro (3 barrinhas) */
+.btn-menu{
+  width: 40px; height: 40px;
+  display: inline-flex; align-items:center; justify-content:center;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 0;
+}
+.hamburger{
+  position: relative;
+  width: 20px; height: 2px;
+  background: var(--txt);
+  border-radius: 2px;
+}
+.hamburger::before,
+.hamburger::after{
+  content: "";
+  position: absolute; left: 0;
+  width: 20px; height: 2px;
+  background: var(--txt);
+  border-radius: 2px;
+}
+.hamburger::before{ top: -6px; }
+.hamburger::after { top:  6px; }
+
+/* Cartões, modais, menus no mesmo tom */
+.card, .modal-content, .offcanvas, .dropdown-menu{
   background: var(--panel);
   color: var(--txt);
   border: 1px solid var(--border);
 }
-.btn-close-white{ filter: invert(1) grayscale(1); }
 
-/* Textos */
+/* Títulos e subtítulos */
 .page-title{ color: var(--txt); }
 .text-muted{ color: var(--muted) !important; }
 
-/* Inputs */
+/* Inputs e selects */
 .form-control, .form-select{
   background: var(--panel-2);
   color: var(--txt);
@@ -55,61 +99,99 @@
 }
 .form-control::placeholder{ color: #bca6a6; }
 
-/* Botões */
+/* Botões “ghost” e estados principais */
 .btn-ghost{
   background: transparent;
   border: 1px solid var(--border);
   color: var(--txt);
 }
-.btn-ghost:hover{ border-color: var(--primary); color: var(--primary); }
-.btn-primary{ background: var(--primary); border-color: var(--primary); color: #2b1515; }
-.btn-danger { background: var(--danger); border-color: var(--danger); }
+.btn-ghost:hover{
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.btn-primary{
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #2b1515;
+}
+.btn-danger{ background: var(--danger); border-color: var(--danger); }
 .btn-success{ background: var(--success); border-color: var(--success); color:#0f2b19; }
 
-/* Cartões */
-.card{ background: var(--panel); color: var(--txt); border: 1px solid var(--border); }
+/* Tabela */
+.table-wrap{ background: var(--panel); border:1px solid var(--border); border-radius:12px; }
+.table{ color: var(--txt); margin:0; }
+.table thead th{
+  background: var(--panel-2);
+  color: var(--txt);
+  border-bottom: 1px solid var(--border);
+}
+.table tbody tr{ border-color: var(--border); }
+.table-hover tbody tr:hover{ background: rgba(255,255,255,.05); }
+.thumb{ width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
+.table .btn{ padding:.35rem .6rem; font-size:.9rem; }
+@media (max-width: 576px){ .table .btn{ padding:.4rem .55rem; font-size:.85rem; } }
 
-/* Sidebar Desktop */
+/* Sidebar (desktop) */
 .sidebar{
   position: fixed;
-  top: 56px;                 /* altura da navbar */
+  top: 56px; /* altura da navbar */
   left: 0;
   width: var(--sidebar);
   height: calc(100svh - 56px);
+  height: calc(100vh - 56px);
   overflow-y: auto;
   background: var(--panel);
   border-right: 1px solid var(--border);
   transition: width .2s ease;
   z-index: 1020;
 }
-.sidebar.sidebar-collapsed{ width: var(--sidebar-collapsed); }
+.brand-logo{ width:32px; height:32px; border-radius:50%; border:1px solid var(--border); object-fit:cover; }
+.brand-title{ font-size: 1rem; }
 
-/* Conteúdo respeita sidebar no desktop */
-.content{ margin-left: 0; padding-top: 56px; }
+.sidebar .nav-link{
+  color: var(--txt);
+  border-radius: 8px;
+  padding: .5rem .75rem;
+}
+.sidebar .nav-link:hover{ background: rgba(255,255,255,.05); }
+.sidebar .nav-link.active{ background: rgba(228,138,138,.15); border:1px solid var(--border); }
+
+.sidebar.sidebar-collapsed{ width: var(--sidebar-collapsed); }
+.sidebar.sidebar-collapsed .brand-title,
+.sidebar.sidebar-collapsed .nav-link span{ display:none; }
+
+/* Toggle colapso (desktop) */
+.toggle-desktop{
+  position: fixed;
+  top: 64px;
+  left: calc(var(--sidebar) - 16px);
+  z-index: 1030;
+}
+.sidebar.sidebar-collapsed ~ .toggle-desktop{
+  left: calc(var(--sidebar-collapsed) - 16px);
+}
+
+/* Conteúdo: fundo escuro e espaçamentos */
+.content{
+  background: var(--bg);        /* <— resolve “tudo branco” */
+  color: var(--txt);
+  min-height: calc(100svh - 56px);
+  min-height: calc(100vh - 56px);
+  padding: 16px;
+  margin-top: 56px; /* abaixo da navbar */
+}
 @media (min-width: 992px){
-  .content{ margin-left: var(--sidebar); padding-top: 16px; }
-  .sidebar.sidebar-collapsed + .content,
+  .content{ margin-left: var(--sidebar); }
   .sidebar.sidebar-collapsed ~ .content{
     margin-left: var(--sidebar-collapsed) !important;
   }
 }
 
-/* Ocultar sidebar no mobile (usamos Offcanvas) */
-@media (max-width: 991.98px){ .sidebar{ display:none; } }
+/* Offcanvas herda as cores acima */
+.btn-close-white{ filter: invert(1) grayscale(1); }
 
-/* Tabela (força dark em todos navegadores) */
-.table-wrap{ border:1px solid var(--border); border-radius:12px; }
-.table{ color: var(--txt); }
-.table thead th{
-  background: var(--panel-2) !important;
-  color: var(--txt) !important;
-  border-bottom: 1px solid var(--border) !important;
+/* Esconde sidebar no mobile; usa offcanvas */
+@media (max-width: 991.98px){
+  .sidebar{ display: none; }
+  .toggle-desktop{ display: none; }
 }
-/* Bootstrap aplica bg na tabela com variáveis — anulamos para manter escuro */
-.table, .table>:not(caption)>*>*{
-  background-color: transparent !important;
-  color: var(--txt) !important;
-  border-color: var(--border) !important;
-}
-.table-hover tbody tr:hover{ background: rgba(255,255,255,.04) !important; }
-.thumb{ width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
