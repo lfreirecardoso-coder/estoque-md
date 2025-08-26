@@ -3,6 +3,7 @@
 // - Botão SAIR com estilo discreto e largura total
 // - Marca item ativo automaticamente
 // - Remove qualquer "Sair" legado minúsculo da página
+// - Suporte para toggle retrátil
 
 (function initSidebar() {
   const html = `
@@ -26,7 +27,7 @@
   `;
 
   // Injeta HTML
-  const mount = document.querySelector('[data-sidebar]');
+  const mount = document.querySelector('[data-sidebar-content]');
   if (mount) mount.innerHTML = html;
 
   // Marca ativo
@@ -79,4 +80,20 @@
     }
   }
   wireLogout();
+
+  // Toggle da sidebar
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const content = document.querySelector('.content');
+
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('sidebar-collapsed');
+      if (sidebar.classList.contains('sidebar-collapsed')) {
+        content.style.marginLeft = '60px';
+      } else {
+        content.style.marginLeft = '280px';
+      }
+    });
+  }
 })();
