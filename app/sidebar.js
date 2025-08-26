@@ -1,33 +1,40 @@
 // sidebar.js — Sidebar unificada (MD | APP ESTOQUE)
 // - Mantém logo (com fallback para arquivo alternativo e SVG)
-// - Botão SAIR com estilo discreto (outline vermelho) e largura total
+// - Botão SAIR com estilo discreto e largura total
 // - Marca item ativo automaticamente
 // - Remove qualquer "Sair" legado minúsculo da página
+// - Suporte para toggle retrátil
 
 (function initSidebar() {
+  console.log("Iniciando sidebar.js");
   const html = `
     <div class="brand">
-      <img class="brand-logo" id="brandLogo" src="img/logo.png" alt="Logo">
-      <h3 class="brand-title">Estoque -MD-</h3>
+      <img src="logo.png" alt="Logo" class="brand-logo" style="width:80px;height:80px;object-fit:contain" />
+      <h1 class="brand-title" style="font-size:1.1rem;margin:0">Estoque -MD-</h1>
     </div>
 
     <nav class="nav">
-      	<a href="dashboard.html">Gestão de Estoque</a>
-      	<a href="novo.html">Cadastro de Estoque</a>
-      	<a href="cadastro_base.html">Cadastro Base | Listas Mestras</a>
-	<a href="admin_users.html">Cadastro de Usuários</a>       
-	<a href="rel.html">Relatórios</a>     
-      	<a href="mov.html">Log de Movimentações</a>
+      <a href="dashboard.html"><span>Gestão de Estoque</span></a>
+      <a href="novo.html"><span>Cadastro de Estoque</span></a>
+      <a href="cadastro_base.html"><span>Cadastro Base</span></a>
+      <a href="rel.html"><span>Relatórios</span></a>     
+      <a href="admin_users.html"><span>Cadastro de Usuários</span></a> 
+      <a href="mov.html"><span>Log de Movimentações</span></a>
     </nav>
 
     <div class="bottom">
-      <button id="btnLogout" class="btn btn-ghost-danger">⎋ Sair</button>
+      <button class="btn-logout" id="btnLogout">Sair</button>
     </div>
   `;
 
   // Injeta HTML
-  const mount = document.querySelector('[data-sidebar]');
-  if (mount) mount.innerHTML = html;
+  const mount = document.querySelector('[data-sidebar-content]');
+  if (!mount) {
+    console.error("Elemento [data-sidebar-content] não encontrado");
+    return;
+  }
+  mount.innerHTML = html;
+  console.log("Sidebar injetada com sucesso");
 
   // Marca ativo
   const here = (location.pathname.split('/').pop() || 'dashboard.html').toLowerCase();
@@ -36,16 +43,14 @@
     if (file === here) a.classList.add('active');
   });
 
-  // Fallback da logo:
-  const logo = document.getElementById('brandLogo');
+  // Fallback da logo
+  const logo = document.querySelector('.brand-logo');
   if (logo) {
     logo.addEventListener('error', function onFail() {
-      // tenta logo.png na raiz
-      if (this.src.indexOf('img/logo.png') !== -1) {
-        this.src = 'logo.png';
+      if (this.src === 'logo.png') {
+        this.src = 'img/logo.png';
         return;
       }
-      // se também falhar, usa um SVG simples (ícone)
       this.removeEventListener('error', onFail);
       this.outerHTML = `
         <svg class="brand-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -55,7 +60,7 @@
     });
   }
 
-  // Remove qualquer "Sair" legado minúsculo dentro da página
+  // Remove qualquer "Sair" legado minúsculo
   Array.from(document.querySelectorAll('input,button')).forEach(el => {
     const txt = (el.value || el.textContent || '').trim().toLowerCase();
     if (txt === 'sair' && el.id !== 'btnLogout') {
@@ -63,21 +68,37 @@
     }
   });
 
-  // Wire do logout (aguarda firebase se necessário)
+  // Wire do logout
   function wireLogout() {
     const btn = document.getElementById('btnLogout');
-    if (!btn) return;
-
-    const attach = () => btn.onclick = () =>
-      window.auth.signOut().then(() => (location.href = 'login.html'));
-
-    if (window.auth && typeof window.auth.signOut === 'function') {
-      attach();
-    } else {
-      window.addEventListener('firebase-ready', () => {
-        if (window.auth && typeof window.auth.signOut === 'function') attach();
-      }, { once: true });
+    if (!btn) {
+      console.warn("Botão #btnLogout não encontrado");
+      return;
     }
+    btn.onclick = () => {
+      window.auth.signOut().then(() => {
+        console.log("Logout realizado, redirecionando para login.html");
+        location.href = 'login.html';
+      }).catch(err => console.error("Erro no logout:", err));
+    };
   }
   wireLogout();
+
+  // Toggle da sidebar
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const content = document.querySelector('.content');
+
+  if (toggleBtn && sidebar && content) {
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('sidebar-collapsed');
+      if (sidebar.classList.contains('sidebar-collapsed')) {
+        content.style.marginLeft = '60px';
+      } else {
+        content.style.marginLeft = '280px';
+      }
+    });
+  } else {
+    console.warn("Elementos de toggle não encontrados:", { sidebar, toggleBtn, content });
+  }
 })();
