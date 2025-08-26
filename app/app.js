@@ -12,16 +12,15 @@ window.addEventListener('firebase-ready', () => {
       location.href = '/login.html';
       return;
     }
-    // Verifica a página atual e redireciona se for index
     const currentPath = location.pathname.toLowerCase();
     console.log("Caminho atual:", currentPath);
     if (currentPath === '/index.html' || currentPath === '/' || currentPath === '') {
       console.log("Redirecionamento forçado para /dashboard.html");
-      location.href = '/dashboard.html'; // Força o redirecionamento
-    } else {
-      console.log("Inicializando página:", currentPath);
-      initByPage();
+      location.replace('/dashboard.html?v=' + Date.now()); // Evita cache
+      return;
     }
+    console.log("Inicializando página:", currentPath);
+    initByPage();
   });
 });
 
@@ -51,47 +50,49 @@ const colItens = () => firebase.firestore().collection('itens');
 
 // =================== DASHBOARD (já conhecido) ===================
 function initEstoque() {
-  ['fNome', 'fCategoria', 'fLocal'].forEach((id) =>
-    document.getElementById(id)?.addEventListener('input', loadItens)
-  );
-
-  document.getElementById('btnExport')?.addEventListener('click', () => {
-    const tb = document.querySelector('#tblItens');
-    if (!tb) return;
-    let csv = 'Nome,Categoria,Qtd,Unid.,Local\n';
-    tb.querySelectorAll('tbody tr').forEach((row) => {
-      const cols = row.querySelectorAll('td');
-      csv += [
-        esc(cols[1]?.textContent),
-        esc(cols[2]?.textContent),
-        esc(cols[3]?.textContent),
-        esc(cols[4]?.textContent),
-        esc(cols[5]?.textContent),
-      ].join(',') + '\n';
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'estoque.csv'; a.click();
-    URL.revokeObjectURL(url);
+  console.log("Inicializando Estoque");
+  ['fNome', 'fCategoria', 'fLocal'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', loadItens);
+      console.log(`Adicionado listener ao filtro: ${id}`);
+    } else {
+      console.warn(`Elemento ${id} não encontrado`);
+    }
   });
 
-  document.getElementById('btnExportPDF')?.addEventListener('click', exportarPDFsemAcoes);
+  const btnExport = document.getElementById('btnExport');
+  const btnExportPDF = document.getElementById('btnExportPDF');
+  if (btnExport) btnExport.addEventListener('click', () => {
+    console.log("Exportando CSV");
+    exportCSV();
+  });
+  if (btnExportPDF) btnExportPDF.addEventListener('click', () => {
+    console.log("Exportando PDF");
+    exportarPDFsemAcoes();
+  });
 }
 
 async function loadItens() {
   const tb = document.querySelector('#tblItens tbody');
-  if (!tb) return;
+  if (!tb) {
+    console.error("Tabela #tblItens não encontrada");
+    return;
+  }
+  console.log("Carregando itens...");
   tb.innerHTML = '<tr><td class="muted" colspan="7">Carregando…</td></tr>';
 
   const nome = (document.getElementById('fNome')?.value || '').toLowerCase();
-  const cat  = (document.getElementById('fCategoria')?.value || '').toLowerCase();
-  const loc  = (document.getElementById('fLocal')?.value || '').toLowerCase();
+  const cat = (document.getElementById('fCategoria')?.value || '').toLowerCase();
+  const loc = (document.getElementById('fLocal')?.value || '').toLowerCase();
 
   try {
+    console.log("Consultando Firestore...");
     const snap = await colItens().orderBy('nome').get();
+    console.log("Dados recebidos do Firestore, total de documentos:", snap.size);
     tb.innerHTML = '';
     if (snap.empty) {
+      console.log("Nenhum item encontrado no Firestore");
       tb.innerHTML = '<tr><td class="muted" colspan="7">Nenhum item cadastrado.</td></tr>';
       return;
     }
@@ -99,8 +100,8 @@ async function loadItens() {
     snap.forEach((doc) => {
       const d = doc.data() || {};
       const ok = (!nome || (d.nome || '').toLowerCase().includes(nome))
-              && (!cat  || (d.categoria || '').toLowerCase().includes(cat))
-              && (!loc  || (d.local || '').toLowerCase().includes(loc));
+              && (!cat || (d.categoria || '').toLowerCase().includes(cat))
+              && (!loc || (d.local || '').toLowerCase().includes(loc));
       if (!ok) return;
 
       let imgSrc = d.imageUrl || '';
@@ -132,9 +133,32 @@ async function loadItens() {
 
       tb.appendChild(tr);
     });
+    console.log("Itens carregados com sucesso");
   } catch (e) {
+    console.error("Erro ao carregar itens:", e.message);
     tb.innerHTML = `<tr><td class="muted" colspan="7">Erro ao carregar: ${esc(e.message || e)}</td></tr>`;
   }
+}
+
+function exportCSV() {
+  const tb = document.querySelector('#tblItens');
+  if (!tb) return;
+  let csv = 'Nome,Categoria,Qtd,Unid.,Local\n';
+  tb.querySelectorAll('tbody tr').forEach((row) => {
+    const cols = row.querySelectorAll('td');
+    csv += [
+      esc(cols[1]?.textContent),
+      esc(cols[2]?.textContent),
+      esc(cols[3]?.textContent),
+      esc(cols[4]?.textContent),
+      esc(cols[5]?.textContent),
+    ].join(',') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'estoque.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 function exportarPDFsemAcoes() {
