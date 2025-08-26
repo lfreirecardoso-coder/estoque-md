@@ -118,7 +118,7 @@
 /* Conteúdo: respeita sidebar no desktop */
 .content{
   margin-left: 0;
-  margin-top: 12px;
+  margin-top: 70px; /* dá espaço para a navbar fixa */
 }
 @media (min-width: 992px){
   .content{ margin-left: var(--sidebar); }
@@ -130,3 +130,31 @@
 
 /* Offcanvas já herda cores do .offcanvas */
 .btn-close-white{ filter: invert(1) grayscale(1); }
+
+/* ===== AJUSTES NOVOS ===== */
+
+/* Deixa a navbar combinar melhor com o tema */
+.navbar {
+  backdrop-filter: blur(2px);
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Garante visibilidade do ícone do hamburguer em tema escuro */
+.navbar-toggler {
+  border-color: var(--border);
+}
+.navbar-toggler-icon {
+  filter: invert(1) grayscale(1);
+}
+
+/* Cards “flat” coerentes com o tema */
+.card.flat{ background: var(--panel); border:1px solid var(--border); }
+
+/* Offcanvas cores (já herdadas, mas forçamos placeholders) */
+.offcanvas .nav-link{ color: var(--txt); }
+.offcanvas .nav-link:hover{ background: rgba(255,255,255,.06); border-radius:8px; }
+
+/* Evita qualquer fundo branco padrão do Bootstrap em tabelas */
+.table-responsive, .table, .table-striped>tbody>tr:nth-of-type(odd) {
+  background: transparent !important;
+}
