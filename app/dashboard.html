@@ -12,14 +12,15 @@
   <link rel="stylesheet" href="theme.css"/>
 </head>
 <body class="app-body">
-  <!-- NAVBAR FIXA (topo) -->
+  <!-- NAVBAR FIXA -->
   <nav class="navbar navbar-dark fixed-top border-bottom">
     <div class="container-fluid">
-      <!-- Hambúrguer (desktop = colapsa sidebar | mobile = abre offcanvas) -->
-      <button class="navbar-toggler d-none d-lg-inline-flex" type="button" id="btnDesktopToggle" aria-label="Alternar sidebar">
+      <!-- Hambúrguer (desktop) — usa o ID que seu JS já conhece -->
+      <button class="navbar-toggler d-none d-lg-inline-flex" type="button" id="sidebarToggle" aria-label="Alternar sidebar">
         <span class="navbar-toggler-icon"></span>
       </button>
 
+      <!-- Hambúrguer (mobile) só para simetria visual; se tiver offcanvas, ligue aqui -->
       <button class="navbar-toggler d-inline-flex d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu" aria-label="Abrir menu">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -27,35 +28,23 @@
       <span class="navbar-brand ms-2">Estoque -MD-</span>
 
       <div class="d-flex gap-2">
-        <a href="relatorios.html" class="btn btn-ghost btn-sm">Relatórios</a>
+        <a href="rel.html" class="btn btn-ghost btn-sm">Relatórios</a>
         <a href="login.html" class="btn btn-outline-danger btn-sm" onclick="auth?.signOut?.()">Sair</a>
       </div>
     </div>
   </nav>
 
   <div class="layout">
-    <!-- SIDEBAR (DESKTOP) -->
+    <!-- SIDEBAR (desktop) -->
     <aside class="sidebar" id="sidebar">
-      <div class="d-flex align-items-center gap-2 mb-3">
-        <img src="logo.png" alt="Logo" class="brand-logo">
-        <strong class="brand-title">Estoque -MD-</strong>
-      </div>
-
-      <nav class="nav flex-column">
-        <a class="nav-link" href="dashboard.html"><span>Gestão de Estoque</span></a>
-        <a class="nav-link" href="novo.html"><span>Cadastro de Estoque</span></a>
-        <a class="nav-link" href="cadastro_base.html"><span>Cadastro Base</span></a>
-        <a class="nav-link" href="relatorios.html"><span>Relatórios</span></a>
-        <a class="nav-link" href="usuarios.html"><span>Cadastro de Usuários</span></a>
-        <a class="nav-link" href="movimentacoes.html"><span>Log de Movimentações</span></a>
-        <a class="btn btn-logout mt-3" href="login.html" onclick="auth?.signOut?.()"><span>Sair</span></a>
-      </nav>
+      <!-- O SEU sidebar.js preenche isso -->
+      <div data-sidebar-content></div>
     </aside>
 
-    <!-- OFFCANVAS (MOBILE) -->
+    <!-- (Opcional) OFFCANVAS (mobile). Se quiser o mesmo menu aqui, copie os links manualmente -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
       <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasMenuLabel">Estoque -MD-</h5>
+        <h5 class="offcanvas-title" id="offcanvasMenuLabel">Menu</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
       </div>
       <div class="offcanvas-body">
@@ -63,9 +52,9 @@
           <a class="nav-link" href="dashboard.html">Gestão de Estoque</a>
           <a class="nav-link" href="novo.html">Cadastro de Estoque</a>
           <a class="nav-link" href="cadastro_base.html">Cadastro Base</a>
-          <a class="nav-link" href="relatorios.html">Relatórios</a>
-          <a class="nav-link" href="usuarios.html">Cadastro de Usuários</a>
-          <a class="nav-link" href="movimentacoes.html">Log de Movimentações</a>
+          <a class="nav-link" href="rel.html">Relatórios</a>
+          <a class="nav-link" href="admin_users.html">Cadastro de Usuários</a>
+          <a class="nav-link" href="mov.html">Log de Movimentações</a>
           <a class="btn btn-logout mt-3" href="login.html" onclick="auth?.signOut?.()">Sair</a>
         </nav>
       </div>
@@ -81,7 +70,7 @@
       </header>
 
       <!-- FILTROS -->
-      <section class="card p-3 my-3">
+      <section class="card p-3 my-3 flat">
         <div class="row g-3">
           <div class="col-md-4 col-12">
             <label for="fNome" class="form-label">Filtrar por nome</label>
@@ -114,7 +103,7 @@
                 <th>Qtd</th>
                 <th>Unid.</th>
                 <th>Local</th>
-                <th>Ações</th>
+                <th class="text-nowrap">Ações</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -131,9 +120,9 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- SUA LÓGICA de listagem/filters/export permanece NO SEU JS -->
+  <!-- SUA LÓGICA (watchItens, render, etc.) fica no seu arquivo de JS existente -->
   <script>
-    // aqui você pode manter exatamente o seu script atual do dashboard (watchItens, render, etc.)
+    // aqui pode manter exatamente seu script atual.
   </script>
 </body>
 </html>
