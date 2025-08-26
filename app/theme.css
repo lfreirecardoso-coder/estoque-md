@@ -195,3 +195,54 @@
   .sidebar{ display: none; }
   .toggle-desktop{ display: none; }
 }
+/* ====== Fix: Tabela dark no Bootstrap ====== */
+.table{
+  /* cores padrão da tabela */
+  --bs-table-bg:            var(--panel);
+  --bs-table-color:         var(--txt);
+  --bs-table-border-color:  var(--border);
+  /* listrada e hover */
+  --bs-table-striped-bg:    rgba(255,255,255,.03);
+  --bs-table-striped-color: var(--txt);
+  --bs-table-hover-bg:      rgba(255,255,255,.05);
+  --bs-table-hover-color:   var(--txt);
+
+  color: var(--txt);
+  background-color: var(--panel);
+  border-color: var(--border);
+}
+
+/* remove “branco interno” nas células que o BS aplica por linha/seção */
+.table > :not(caption) > * > *{
+  background-color: transparent !important;
+  color: var(--txt);
+  border-color: var(--border);
+}
+
+/* cabeça da tabela */
+.table thead th{
+  background: var(--panel-2) !important;
+  color: var(--txt);
+  border-bottom: 1px solid var(--border);
+}
+
+/* bordas quando usar .table-bordered */
+.table-bordered > :not(caption) > * {
+  border-width: 0; /* zera nas linhas… */
+}
+.table-bordered > :not(caption) > * > *{
+  border: 1px solid var(--border); /* …e aplica nas células */
+}
+
+/* wrapper da tabela */
+.table-wrap{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* botões dentro da tabela um pouco menores */
+.table .btn{ padding:.35rem .6rem; font-size:.9rem; }
+@media (max-width: 576px){
+  .table .btn{ padding:.4rem .55rem; font-size:.85rem; }
+}
