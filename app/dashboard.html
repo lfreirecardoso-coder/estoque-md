@@ -16,6 +16,10 @@
       padding: 18px;
       border-right: 1px solid var(--border);
       transition: width 0.3s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
     }
     .sidebar-collapsed {
       width: 60px;
@@ -181,8 +185,11 @@
   <!-- BASE -->
   <script src="firebase.js"></script>
   <script src="sidebar.js"></script>
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   <!-- LÓGICA -->
   <script>
+    console.log("Iniciando dashboard.js");
     const $ = s => document.querySelector(s);
     const $$ = s => Array.from(document.querySelectorAll(s));
     const fNome = $('#fNome');
@@ -342,8 +349,10 @@
     }
     // Start
     window.addEventListener('firebase-ready', () => {
+      console.log("Firebase-ready disparado");
       auth.onAuthStateChanged(u => {
         if (!u) { location.href = 'login.html'; return; }
+        console.log("Usuário autenticado, iniciando watchItens");
         watchItens();
       });
     });
