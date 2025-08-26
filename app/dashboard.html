@@ -12,8 +12,8 @@
   <!-- Estilos personalizados com fallback inline -->
   <style>
     :root {
-      --bg: #1e0f0f; /* Fallback se theme.css não aplicar */
-      --bg-secondary: #ffffff; /* Fundo branco pro conteúdo principal */
+      --bg: #1e0f0f; /* Fallback escuro pra sidebar */
+      --bg-secondary: #ffffff; /* Fundo claro pro conteúdo */
       --border: #dddddd; /* Bordas cinza claro */
       --txt: #000000; /* Texto preto */
       --danger: #e36b6b; /* Vermelho pra perigo */
@@ -27,7 +27,7 @@
       font-family: Arial, sans-serif;
     }
     .sidebar {
-      width: 280px; /* Forçando largura fixa pra tela grande */
+      width: 280px; /* Forçando largura fixa */
       min-height: 100vh;
       background: var(--bg);
       padding: 18px;
@@ -38,7 +38,7 @@
       left: 0;
       z-index: 1000;
       color: var(--txt);
-      display: block !important; /* Forçando exibição sempre */
+      display: block !important; /* Garantindo visibilidade */
     }
     .sidebar-collapsed {
       width: 60px;
@@ -63,11 +63,12 @@
       color: var(--txt);
     }
     .content {
-      margin-left: 280px; /* Forçando margem pra tela grande */
+      margin-left: 280px; /* Forçando margem pra sidebar */
       padding: 24px;
       transition: margin-left 0.3s ease;
       min-height: 80vh;
       background: var(--bg-secondary);
+      overflow: auto; /* Garantindo rolagem se necessário */
     }
     .sidebar-collapsed ~ .content {
       margin-left: 60px;
@@ -90,6 +91,7 @@
     #tblItens {
       width: 100%;
       border-collapse: collapse;
+      visibility: visible !important; /* Forçando visibilidade da tabela */
     }
     #tblItens th, #tblItens td {
       padding: 12px;
@@ -115,7 +117,6 @@
       border-radius: 5px;
       border: 1px solid var(--border);
     }
-    /* Removi o media query pra forçar layout de tela grande; adicione manualmente se precisar pra celular */
   </style>
 </head>
 <body onload="console.log('Largura da janela:', window.innerWidth)">
