@@ -12,16 +12,16 @@
     </div>
 
     <nav class="nav">
-      <a href="/dashboard.html">Gestão de Estoque</a>
-      <a href="/novo.html">Cadastro de Estoque</a>
-      <a href="/cadastro_base.html">Cadastro Base</a>
-      <a href="/rel.html">Relatórios</a>     
-      <a href="/admin_users.html">Cadastro de Usuários</a> 
-      <a href="/mov.html">Log de Movimentações</a>
+      <a href="dashboard.html">Gestão de Estoque</a>
+      <a href="novo.html">Cadastro de Estoque</a>
+      <a href="cadastro_base.html">Cadastro Base</a>
+      <a href="rel.html">Relatórios</a>     
+      <a href="admin_users.html">Cadastro de Usuários</a> 
+      <a href="mov.html">Log de Movimentações</a>
     </nav>
 
     <div class="bottom">
-      <button class="btn-logout btn btn-ghost-danger w-100" id="btnLogout">Sair</button>
+      <button class="btn-logout" id="btnLogout">Sair</button>
     </div>
   `;
 
@@ -67,10 +67,7 @@
     if (!btn) return;
 
     const attach = () => btn.onclick = () => {
-      window.auth.signOut().then(() => {
-        console.log("Logout realizado, redirecionando para /login.html");
-        location.href = '/login.html';
-      }).catch((error) => console.error("Erro no logout:", error.message));
+      window.auth.signOut().then(() => (location.href = 'login.html'));
     };
 
     if (window.auth && typeof window.auth.signOut === 'function') {
