@@ -27,18 +27,18 @@
       background-color: rgba(255, 255, 255, 0.1);
       border-radius: 5px;
     }
-    @media (max-width: 991px) {
-      .sidebar {
-        display: none; /* Oculta em telas pequenas, pode usar offcanvas se preferir */
-      }
-      .content {
-        margin-left: 0 !important;
-      }
-    }
     .content {
       margin-left: 250px;
       padding: 20px;
       flex-grow: 1;
+    }
+    @media (max-width: 991px) {
+      .sidebar {
+        display: none; /* Oculta em telas pequenas por agora */
+      }
+      .content {
+        margin-left: 0;
+      }
     }
   </style>
 </head>
@@ -46,7 +46,7 @@
   <div class="d-flex">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div data-sidebar></div> <!-- Injeção do sidebar.js -->
+      <div data-sidebar></div> <!-- Ponto de injeção do sidebar.js -->
     </aside>
 
     <!-- Main Content -->
