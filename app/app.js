@@ -4,22 +4,24 @@
 
 // -------- Boot --------
 window.addEventListener('firebase-ready', () => {
-  console.log("Evento firebase-ready disparado"); // Log de depuração
+  console.log("Evento firebase-ready disparado");
   auth.onAuthStateChanged((u) => {
-    console.log("Estado de autenticação:", u ? "Usuário logado" : "Nenhum usuário logado"); // Log de depuração
+    console.log("Estado de autenticação:", u ? "Usuário logado" : "Nenhum usuário logado");
     if (!u) {
-      console.log("Redirecionando para login.html");
+      console.log("Redirecionando para /login.html");
       location.href = '/login.html';
       return;
     }
-    // Redireciona para dashboard.html se o usuário estiver logado e estiver na página index
-    if (location.pathname === '/index.html' || location.pathname === '/') {
+    // Verifica a página atual e redireciona se necessário
+    const currentPath = location.pathname.toLowerCase();
+    console.log("Caminho atual:", currentPath);
+    if (currentPath === '/index.html' || currentPath === '/' || currentPath === '') {
       console.log("Redirecionando para /dashboard.html por usuário logado");
       location.href = '/dashboard.html';
-      return;
+    } else {
+      console.log("Inicializando página:", currentPath);
+      initByPage();
     }
-    console.log("Inicializando página para usuário logado");
-    initByPage();
   });
 });
 
