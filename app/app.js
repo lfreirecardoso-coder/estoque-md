@@ -8,8 +8,14 @@ window.addEventListener('firebase-ready', () => {
   auth.onAuthStateChanged((u) => {
     console.log("Estado de autenticação:", u ? "Usuário logado" : "Nenhum usuário logado"); // Log de depuração
     if (!u) {
-      console.log("Redirecionando para login.html"); // Log de depuração
-      location.href = 'login.html';
+      console.log("Redirecionando para login.html");
+      location.href = '/login.html';
+      return;
+    }
+    // Redireciona para dashboard.html se o usuário estiver logado e estiver na página index
+    if (location.pathname === '/index.html' || location.pathname === '/') {
+      console.log("Redirecionando para /dashboard.html por usuário logado");
+      location.href = '/dashboard.html';
       return;
     }
     console.log("Inicializando página para usuário logado");
@@ -20,7 +26,7 @@ window.addEventListener('firebase-ready', () => {
 // -------- Router --------
 function initByPage() {
   document.getElementById('btnLogout')?.addEventListener('click', () => {
-    auth.signOut().then(() => location.href = 'login.html');
+    auth.signOut().then(() => location.href = '/login.html');
   });
 
   if (document.getElementById('page-estoque')) {
@@ -276,7 +282,7 @@ function initNovo() {
       else        await colItens().add(data);
 
       iMsg.textContent = 'Item salvo com sucesso!';
-      setTimeout(() => location.href = 'dashboard.html', 900);
+      setTimeout(() => location.href = '/dashboard.html', 900);
     } catch (e) {
       iMsg.textContent = 'Erro ao salvar: ' + (e.message || e);
       btnSalvar.disabled = false;
