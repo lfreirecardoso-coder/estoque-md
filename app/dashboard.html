@@ -5,25 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Estoque | Dashboard</title>
   <link rel="stylesheet" href="theme.css"/>
-  <!-- Padroniza o tamanho dos botões de ação -->
+  <!-- Estilos personalizados para a sidebar retrátil -->
   <style>
-    .table-wrap .btn-action {
-      min-width: 96px;
-      text-align: center;
-      padding: 8px 12px;
+    .sidebar {
+      width: 280px;
+      min-height: 100dvh;
+      background: #2b0d12;
+      padding: 18px;
+      border-right: 1px solid var(--border);
+      transition: width 0.3s ease;
     }
-    @media (max-width: 900px) {
-      .table-wrap .btn-action {
-        min-width: 84px;
-        padding: 6px 10px;
+    .offcanvas {
+      width: 280px !important;
+    }
+    .content {
+      margin-left: 0;
+      padding: 24px;
+      transition: margin-left 0.3s ease;
+    }
+    .sidebar-collapsed {
+      width: 60px !important;
+    }
+    .sidebar-collapsed .brand-title,
+    .sidebar-collapsed .nav a span {
+      display: none;
+    }
+    .sidebar-collapsed .brand-logo {
+      margin: 0 auto;
+    }
+    .toggle-btn {
+      position: absolute;
+      top: 10px;
+      right: -40px;
+      background: #2b0d12;
+      border: 1px solid var(--border);
+      border-left: none;
+      border-radius: 0 5px 5px 0;
+      padding: 5px 10px;
+      cursor: pointer;
+      color: var(--txt);
+    }
+    @media (max-width: 991px) {
+      .sidebar {
+        display: none;
+      }
+      .offcanvas {
+        width: 280px !important;
+      }
+      .content {
+        margin-left: 0;
       }
     }
   </style>
 </head>
 <body>
   <div class="layout">
-    <!-- Sidebar unificada -->
-    <aside class="sidebar" data-sidebar></aside>
+    <!-- Sidebar retrátil -->
+    <aside class="sidebar offcanvas offcanvas-start" tabindex="-1" id="sidebar" data-sidebar>
+      <button class="toggle-btn" id="sidebarToggle">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div data-sidebar-content></div> <!-- Injeção ajustada -->
+    </aside>
+
+    <!-- Botão de toggle para mobile -->
+    <button class="btn btn-outline-light d-md-none m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
     <!-- CONTEÚDO -->
     <main class="content" id="page-dashboard">
       <header class="page-header">
