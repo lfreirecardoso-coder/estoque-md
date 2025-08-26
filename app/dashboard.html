@@ -5,94 +5,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Estoque | Dashboard</title>
 
-  <!-- Favicons (opcional, mas recomendado) -->
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
-  <meta name="theme-color" content="#1a0e0e">
+  <!-- FAVICON (corrige 404) -->
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico">
 
-  <!-- Bootstrap 5 CSS -->
+  <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Tema -->
+  <!-- Tema dark do app -->
   <link rel="stylesheet" href="theme.css"/>
 </head>
+
 <body class="app-body">
 
-  <!-- NAVBAR (topo) -->
-  <nav class="navbar navbar-expand-lg sticky-top">
+  <!-- NAVBAR (fixa no topo; hambúrguer só no mobile) -->
+  <nav class="navbar navbar-dark fixed-top border-bottom">
     <div class="container-fluid">
-      <!-- Botão menu (só aparece no mobile) -->
-      <button class="btn-menu d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu" aria-label="Abrir menu">
-        <span class="hamburger"></span>
+      <!-- botão hambúrguer visível APENAS no mobile -->
+      <button class="navbar-toggler d-lg-none" type="button"
+              data-bs-toggle="offcanvas" data-bs-target="#mobileMenu"
+              aria-controls="mobileMenu" aria-label="Abrir menu">
+        <span class="navbar-toggler-icon"></span>
       </button>
 
-      <a class="navbar-brand ms-2" href="#">Estoque -MD-</a>
+      <span class="navbar-brand ms-2">Estoque -MD-</span>
 
-      <div class="ms-auto">
-        <button class="btn btn-logout-top" id="btnLogoutTop">Sair</button>
+      <div class="d-flex">
+        <button id="btnLogoutTop" class="btn btn-outline-light btn-sm">Sair</button>
       </div>
     </div>
   </nav>
 
-  <!-- SIDEBAR (desktop) -->
-  <aside class="sidebar d-none d-lg-block" id="sidebar">
-    <div class="p-3" data-sidebar-content></div>
-  </aside>
-
-  <!-- Botão colapso (desktop) -->
-  <button class="btn-menu toggle-desktop d-none d-lg-inline-flex" id="toggleDesktop" title="Colapsar/Expandir menu">
-    <span class="hamburger"></span>
-  </button>
-
-  <!-- OFFCANVAS (mobile) -->
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
+  <!-- OFFCANVAS (menu no MOBILE) -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
     <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="offcanvasMenuLabel">Menu</h5>
+      <h5 class="offcanvas-title" id="mobileMenuLabel">Menu</h5>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
     </div>
-    <div class="offcanvas-body" id="offcanvasMenuBody"><!-- sidebar.js injeta aqui --></div>
+    <div class="offcanvas-body">
+      <!-- O sidebar.js injeta aqui o mesmo conteúdo da sidebar -->
+      <div data-offcanvas-content></div>
+      <hr class="text-muted">
+      <button class="btn btn-outline-light w-100" id="btnLogoutCanvas">Sair</button>
+    </div>
   </div>
 
-  <!-- CONTEÚDO -->
-  <main class="content">
-    <div class="container-fluid">
+  <!-- LAYOUT -->
+  <div class="d-flex">
 
-      <header class="mb-3">
-        <h2 class="page-title mb-1">Estoque | Dashboard</h2>
-        <p class="text-muted">
+    <!-- SIDEBAR (só DESKTOP) -->
+    <aside id="sidebar" class="sidebar d-none d-lg-block">
+      <div class="p-3">
+        <!-- botão colapsar (só desktop) -->
+        <button id="btnDesktopCollapse" class="btn btn-outline-light btn-sm mb-3">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- conteúdo vem do sidebar.js -->
+        <div data-sidebar-content></div>
+
+        <hr class="text-muted">
+        <button class="btn btn-outline-light w-100" id="btnLogoutSide">Sair</button>
+      </div>
+    </aside>
+
+    <!-- CONTEÚDO -->
+    <main class="content container-fluid mt-4 mt-lg-3">
+      <header class="mb-4">
+        <h1 class="page-title h2 mb-1">Estoque | Dashboard</h1>
+        <p class="text-muted m-0">
           Filtre, exporte e movimente itens do estoque. Clique na imagem para pré-visualizar.
         </p>
       </header>
 
       <!-- FILTROS -->
-      <section class="card p-3 mb-3">
-        <div class="row g-3">
-          <div class="col-12 col-lg-4">
-            <label for="fNome" class="form-label">Filtrar por nome</label>
-            <input id="fNome" class="form-control" placeholder="Ex.: Fio, Tomada, Cabo..."/>
+      <section class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-4">
+              <label class="form-label">Filtrar por nome</label>
+              <input id="fNome" class="form-control" placeholder="Ex.: Fio, Tomada, Cabo..."/>
+            </div>
+            <div class="col-12 col-lg-4">
+              <label class="form-label">Categoria</label>
+              <input id="fCategoria" class="form-control" placeholder="Ex.: Elétrica, Som..."/>
+            </div>
+            <div class="col-12 col-lg-4">
+              <label class="form-label">Local de Armazenamento</label>
+              <input id="fLocal" class="form-control" placeholder="Ex.: Caixa A1, Depósito..."/>
+            </div>
           </div>
-          <div class="col-12 col-lg-4">
-            <label for="fCategoria" class="form-label">Categoria</label>
-            <input id="fCategoria" class="form-control" placeholder="Ex.: Elétrica, Som..."/>
+          <div class="mt-3 d-flex gap-2">
+            <button type="button" class="btn btn-ghost" id="btnCsv">Exportar CSV</button>
+            <button type="button" class="btn btn-ghost" id="btnPdf">Exportar PDF</button>
           </div>
-          <div class="col-12 col-lg-4">
-            <label for="fLocal" class="form-label">Local de Armazenamento</label>
-            <input id="fLocal" class="form-control" placeholder="Ex.: Caixa A1, Depósito..."/>
-          </div>
-        </div>
-
-        <div class="d-flex gap-2 mt-3">
-          <button type="button" class="btn btn-ghost" id="btnCsv">Exportar CSV</button>
-          <button type="button" class="btn btn-ghost" id="btnPdf">Exportar PDF</button>
         </div>
       </section>
 
       <!-- TABELA -->
-      <section class="table-wrap p-2">
+      <section class="table-wrap p-0">
         <div class="table-responsive">
-          <table class="table table-hover align-middle" id="tblItens">
-            <thead>
+          <table id="tblItens" class="table table-hover align-middle m-0">
+            <thead class="sticky-top">
               <tr>
                 <th>Imagem</th>
                 <th>Nome</th>
@@ -107,20 +121,19 @@
           </table>
         </div>
       </section>
-
-    </div>
-  </main>
+    </main>
+  </div>
 
   <!-- MODAL: imagem -->
   <div class="modal" id="modalImg" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Imagem do item</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <div class="modal-body">
-          <img id="bigImg" src="" alt="Imagem do item" style="width:100%;border-radius:10px;border:1px solid var(--border)"/>
+          <img id="bigImg" src="" alt="Imagem do item" class="w-100 rounded-3 border" style="border-color:var(--border)!important">
         </div>
       </div>
     </div>
@@ -149,7 +162,7 @@
               <input id="mvObs" class="form-control" placeholder="Motivo, OS, responsável etc."/>
             </div>
           </div>
-          <p class="text-muted mt-2" id="mvMsg"></p>
+          <p class="text-muted mt-2 small" id="mvMsg"></p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary" id="btnConfirmMov">Confirmar</button>
@@ -158,65 +171,58 @@
     </div>
   </div>
 
-  <!-- Firebase -->
-  <script src="firebase.js"></script>
-  <!-- Sidebar -->
-  <script src="sidebar.js"></script>
-  <!-- Bootstrap 5 JS -->
+  <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="firebase.js"></script>
+  <script src="sidebar.js"></script>
 
-  <!-- LÓGICA DA PÁGINA (a sua, só deixei igual) -->
   <script>
-    // botão “Sair” do topo também desloga
-    document.getElementById('btnLogoutTop')?.addEventListener('click', () => {
-      if (window.auth && auth.signOut){
-        auth.signOut().then(()=> location.href='login.html');
-      } else {
-        location.href='login.html';
-      }
-    });
-
     console.log("Iniciando dashboard.js");
-    const $ = s => document.querySelector(s);
+    const $  = s => document.querySelector(s);
     const $$ = s => Array.from(document.querySelectorAll(s));
+
+    // logout em todos os botões
+    function wireLogout(btn){
+      if(!btn) return;
+      btn.onclick = () => auth?.signOut?.().then(()=>location.href='login.html');
+    }
+    wireLogout($('#btnLogoutTop'));
+    wireLogout($('#btnLogoutSide'));
+    wireLogout($('#btnLogoutCanvas'));
+
+    // Tabela / filtros
     const fNome = $('#fNome');
     const fCategoria = $('#fCategoria');
     const fLocal = $('#fLocal');
     const tbody = $('#tblItens tbody');
 
-    // Modais (agora com Bootstrap Modal)
-    const modalImgEl = document.getElementById('modalImg');
-    const modalImg = new bootstrap.Modal(modalImgEl);
-    const bigImg = $('#bigImg');
-
-    function openImg(url){
-      bigImg.src = url || '';
-      modalImg.show();
-    }
-    window.openImg = openImg;
-
-    const modalMovEl = document.getElementById('modalMov');
-    const modalMov = new bootstrap.Modal(modalMovEl);
-    const mvQtd = $('#mvQtd');
-    const mvObs = $('#mvObs');
-    const mvMsg = $('#mvMsg');
-    const mvTipoInput = $('#mvTipo');
-    const movTitle = $('#movTitle');
-
     let ITENS_CACHE = [];
-    let MOV_ITEM = null;
-    let MOV_TIPO = 'entrada';
-    function n(v){ return typeof v === 'number' ? v : (Number(v)||0); }
+    let MOV_ITEM=null, MOV_TIPO='entrada';
+    const modalMovEl = document.getElementById('modalMov');
+    const modalImgEl = document.getElementById('modalImg');
+    const bsMov   = new bootstrap.Modal(modalMovEl);
+    const bsImg   = new bootstrap.Modal(modalImgEl);
+    const mvQtd   = $('#mvQtd');
+    const mvObs   = $('#mvObs');
+    const mvTipo  = $('#mvTipo');
+    const mvMsg   = $('#mvMsg');
+    const movTitle= $('#movTitle');
+    const bigImg  = $('#bigImg');
+
+    function n(v){ return typeof v==='number' ? v : (Number(v)||0); }
+
+    // abre imagem
+    window.openImg = url => { bigImg.src = url||''; bsImg.show(); };
 
     function render(){
-      const qNome = fNome.value.trim().toLowerCase();
-      const qCat = fCategoria.value.trim().toLowerCase();
-      const qLoc = fLocal.value.trim().toLowerCase();
+      const qn = fNome.value.trim().toLowerCase();
+      const qc = fCategoria.value.trim().toLowerCase();
+      const ql = fLocal.value.trim().toLowerCase();
 
       const rows = ITENS_CACHE.filter(i=>{
-        const okN = !qNome || (i.nome||'').toLowerCase().includes(qNome);
-        const okC = !qCat  || (i.categoria||'').toLowerCase().includes(qCat);
-        const okL = !qLoc  || (i.local||'').toLowerCase().includes(qLoc);
+        const okN = !qn || (i.nome||'').toLowerCase().includes(qn);
+        const okC = !qc || (i.categoria||'').toLowerCase().includes(qc);
+        const okL = !ql || (i.local||'').toLowerCase().includes(ql);
         return okN && okC && okL;
       }).map(i=>{
         const img = i.imageUrl
@@ -231,44 +237,39 @@
             <td>${i.unidade||'-'}</td>
             <td>${i.local||'-'}</td>
             <td class="text-end">
-              <button class="btn btn-primary btn-entrada" data-id="${i.id}">Entrada</button>
-              <button class="btn btn-danger btn-saida"   data-id="${i.id}">Saída</button>
-              <a class="btn btn-ghost" href="novo.html?id=${i.id}">Editar</a>
-              <button class="btn btn-ghost btn-excluir" data-id="${i.id}">Excluir</button>
+              <button class="btn btn-primary btn-sm me-1 btn-entrada" data-id="${i.id}">Entrada</button>
+              <button class="btn btn-danger  btn-sm me-1 btn-saida"   data-id="${i.id}">Saída</button>
+              <a class="btn btn-ghost  btn-sm me-1" href="novo.html?id=${i.id}">Editar</a>
+              <button class="btn btn-ghost  btn-sm btn-excluir" data-id="${i.id}">Excluir</button>
             </td>
-          </tr>
-        `;
+          </tr>`;
       }).join('');
 
-      tbody.innerHTML = rows || '<tr><td colspan="7" class="text-muted">Nenhum item encontrado.</td></tr>';
+      tbody.innerHTML = rows || `<tr><td colspan="7" class="text-center text-muted py-4">Nenhum item encontrado.</td></tr>`;
 
       $$('.btn-entrada').forEach(b => b.onclick = () => openMov(b.dataset.id,'entrada'));
       $$('.btn-saida').forEach(b   => b.onclick = () => openMov(b.dataset.id,'saida'));
       $$('.btn-excluir').forEach(b => b.onclick = () => excluirItem(b.dataset.id));
     }
 
-    function openMov(id, tipo){
+    function openMov(id,tipo){
       const item = ITENS_CACHE.find(x=>x.id===id);
-      if (!item) return;
-      MOV_ITEM = item; MOV_TIPO = tipo;
-      mvQtd.value=''; mvObs.value=''; mvMsg.textContent=''; mvMsg.style.color='';
-      mvTipoInput.value = tipo;
+      if(!item) return;
+      MOV_ITEM=item; MOV_TIPO=tipo;
+      mvQtd.value=''; mvObs.value=''; mvMsg.textContent='';
+      mvTipo.value = tipo;
       movTitle.textContent = `${tipo==='entrada'?'Entrada':'Saída'} — ${item.nome} (estoque: ${n(item.qtd)})`;
-      modalMov.show();
+      bsMov.show();
     }
 
     async function confirmarMov(){
-      if (!MOV_ITEM) return;
+      if(!MOV_ITEM) return;
       const qtd = Number(mvQtd.value);
-      if (!qtd || qtd<1){
-        mvMsg.textContent = 'Informe uma quantidade válida.';
-        mvMsg.style.color = '#FFD2D2';
-        return;
-      }
-      const obs = mvObs.value.trim();
+      if(!qtd || qtd<1){ mvMsg.textContent='Informe uma quantidade válida.'; return; }
+      const obs  = mvObs.value.trim();
       const tipo = MOV_TIPO;
       const user = auth.currentUser;
-      if (!user){ location.href='login.html'; return; }
+      if(!user){ location.href='login.html'; return; }
 
       const itemRef = db.collection('itens').doc(MOV_ITEM.id);
       const movRef  = db.collection('movimentacoes').doc();
@@ -276,74 +277,72 @@
       try{
         await db.runTransaction(async t=>{
           const snap = await t.get(itemRef);
-          if (!snap.exists) throw new Error('Item não encontrado.');
+          if(!snap.exists) throw new Error('Item não encontrado.');
           const atual = Number(snap.data().qtd||0);
-          const novo  = (tipo==='entrada')?(atual+qtd):(atual-qtd);
-          if (novo < 0) throw new Error(`Estoque insuficiente: atual ${atual}.`);
+          const novo  = (tipo==='entrada') ? (atual+qtd) : (atual-qtd);
+          if(novo<0) throw new Error(`Estoque insuficiente: atual ${atual}.`);
           const inc = firebase.firestore.FieldValue.increment(tipo==='entrada'?qtd:-qtd);
-          t.update(itemRef, { qtd: inc });
-          t.set(movRef, {
+          t.update(itemRef,{ qtd: inc });
+          t.set(movRef,{
             itemId: MOV_ITEM.id, itemNome: MOV_ITEM.nome||'',
             tipo, qtd, obs: obs||'',
             usuario: user.uid, usuarioNome: user.email||user.displayName||'',
             data: firebase.firestore.FieldValue.serverTimestamp()
           });
         });
+        mvMsg.classList.remove('text-danger'); mvMsg.classList.add('text-success');
         mvMsg.textContent='Movimentação registrada!';
-        mvMsg.style.color='#9BE39B';
-        setTimeout(()=> modalMov.hide(), 700);
+        setTimeout(()=>bsMov.hide(),700);
       }catch(err){
-        console.error(err);
+        mvMsg.classList.remove('text-success'); mvMsg.classList.add('text-danger');
         mvMsg.textContent = err.message || 'Erro ao movimentar.';
-        mvMsg.style.color = '#FFD2D2';
       }
     }
     document.getElementById('btnConfirmMov').onclick = confirmarMov;
 
     async function excluirItem(id){
-      if (!confirm('Tem certeza que deseja excluir este item?')) return;
+      if(!confirm('Tem certeza que deseja excluir este item?')) return;
       try{ await db.collection('itens').doc(id).delete(); }
       catch(e){ alert('Erro ao excluir: '+(e.message||e)); }
     }
 
-    // Exportar
+    // exportações
     function exportCSV(){
       const ths = $$('#tblItens thead th').map(th=>th.textContent.trim());
       const trs = Array.from(tbody.querySelectorAll('tr')).map(tr =>
-        Array.from(tr.children).slice(0,6).map(td => `"${(td.textContent||'').replaceAll('"','""')}"`).join(',')
+        Array.from(tr.children).slice(0,6).map(td=>`"${(td.textContent||'').replaceAll('"','""')}"`).join(',')
       );
       const csv = [ths.slice(0,6).join(','), ...trs].join('\n');
-      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `estoque_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
+      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      const a = Object.assign(document.createElement('a'),{
+        href: URL.createObjectURL(blob), download: `estoque_${new Date().toISOString().slice(0,10)}.csv`
+      }); a.click();
     }
     function exportPDF(){ window.print(); }
     $('#btnCsv').onclick = exportCSV;
     $('#btnPdf').onclick = exportPDF;
 
-    // Filtros
-    [fNome, fCategoria, fLocal].forEach(el => el.addEventListener('input', render));
+    [fNome,fCategoria,fLocal].forEach(el=>el.addEventListener('input',render));
 
-    // Watch itens
-    function watchItens(){
-      db.collection('itens').orderBy('nome').onSnapshot(snap=>{
-        ITENS_CACHE = [];
-        snap.forEach(doc => ITENS_CACHE.push({ id:doc.id, ...doc.data() }));
-        render();
-      }, err=>{
-        console.error('Erro ao carregar itens:', err);
-        tbody.innerHTML = `<tr><td colspan="7">Erro ao carregar: ${err.message}</td></tr>`;
-      });
-    }
-
-    window.addEventListener('firebase-ready', () => {
+    // Firestore realtime
+    window.addEventListener('firebase-ready', ()=>{
       auth.onAuthStateChanged(u=>{
-        if (!u){ location.href='login.html'; return; }
-        watchItens();
+        if(!u){ location.href='login.html'; return; }
+        db.collection('itens').orderBy('nome').onSnapshot(snap=>{
+          ITENS_CACHE = [];
+          snap.forEach(doc=>ITENS_CACHE.push({id:doc.id,...doc.data()}));
+          render();
+        }, err=>{
+          tbody.innerHTML = `<tr><td colspan="7" class="text-danger">${err.message}</td></tr>`;
+        });
       });
     });
+
+    // Colapsar sidebar (desktop)
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('btnDesktopCollapse').onclick = ()=>{
+      sidebar.classList.toggle('sidebar-collapsed');
+    };
   </script>
 </body>
 </html>
