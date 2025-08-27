@@ -22,6 +22,7 @@
     .upload-status.err{ color:#FFD2D2 }
     .progress{ height:8px }
     .photo-note{ font-size:.9rem; color:var(--muted); }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; }
   </style>
 </head>
 <body class="app-body">
@@ -139,7 +140,7 @@
           </div>
 
           <div class="d-flex align-items-center gap-2 mt-3">
-            <button type="submit" class="btn btn-primary" id="btnSalvar">💾 Salvar</button>
+            <button type="submit" class="btn btn-primary" id="btnSalvar" disabled>💾 Salvar</button>
             <a href="dashboard.html" class="btn btn-ghost">Cancelar</a>
             <span class="text-muted ms-2" id="iMsg"></span>
           </div>
@@ -185,6 +186,22 @@
       else { location.href='login.html'; }
     });
 
+    /* ========= Estado: imagem presente? ========= */
+    let HAS_IMAGE = false;      // controla habilitação do Salvar
+    let IS_EDIT   = false;      // se estamos editando
+    function updateSaveState(){
+      const btn = document.getElementById('btnSalvar');
+      // Em novo: precisa HAS_IMAGE = true
+      // Em edição: permite salvar se já havia imageUrl OU se foi anexado arquivo (HAS_IMAGE)
+      if (!IS_EDIT) {
+        btn.disabled = !HAS_IMAGE;
+      } else {
+        // Em edição, se não foi carregado imageUrl anterior e também não há arquivo -> desabilita
+        const hadPrev = !!document.getElementById('iPreview')?.dataset.hasPrevImage;
+        btn.disabled = !(HAS_IMAGE || hadPrev);
+      }
+    }
+
     /* ========= Combos (categorias/locais/unidades) ========= */
     const CFG_COL = 'config';
 
@@ -206,13 +223,14 @@
 
     async function loadCombos(prefill){
       const [cats,locs,unis] = await Promise.all([
-        getItems('categorias',['Elétrica','Hidráulica','Ferramentas']),
+        getItems('categororias',['Elétrica','Hidráulica','Ferramentas']), // (se já existir com outro id, ele mantém)
         getItems('locais',['Depósito','Caixa 1','Caixa 2']),
         getItems('unidades',['UN','pct','cx','m','cm','mm','kg','g','L','rolo'])
-      ]);
-      fillSelect(document.getElementById('iCategoria'), cats, prefill?.categoria);
-      fillSelect(document.getElementById('iLocal'),     locs, prefill?.local);
-      fillSelect(document.getElementById('iUnidade'),   unis, prefill?.unidade);
+      ]).catch(()=>[[],[],[]]);
+
+      fillSelect(document.getElementById('iCategoria'), cats?.length?cats:['Elétrica','Hidráulica','Ferramentas'], prefill?.categoria);
+      fillSelect(document.getElementById('iLocal'),     locs?.length?locs:['Depósito','Caixa 1','Caixa 2'],      prefill?.local);
+      fillSelect(document.getElementById('iUnidade'),   unis?.length?unis:['UN','pct','cx','m','cm','mm','kg','g','L','rolo'], prefill?.unidade);
     }
 
     /* ========= Upload / Preview ========= */
@@ -236,10 +254,11 @@
     function handleSelectedFile(file){
       const preview = document.getElementById('iPreview');
       if(!file){
-        // volta para placeholder visual, mas continua obrigatório anexar arquivo
         preview.src = 'img/placeholder.svg';
         setUploadInfo('Nenhum arquivo selecionado. Imagem é obrigatória.', 'err');
         imgHint.textContent = 'Selecione um arquivo ou use a câmera.';
+        HAS_IMAGE = false;
+        updateSaveState();
         return;
       }
       const reader = new FileReader();
@@ -248,6 +267,8 @@
       const kb = Math.round(file.size/1024);
       setUploadInfo(`Selecionado: ${file.name || 'foto'} (${kb} KB)`, 'ok');
       imgHint.textContent = '';
+      HAS_IMAGE = true;
+      updateSaveState();
     }
 
     /* ========= Câmera ========= */
@@ -304,6 +325,8 @@
       document.getElementById('iPreview').src = 'img/placeholder.svg';
       setUploadInfo('Imagem removida. Selecione outra antes de salvar.', 'err');
       imgHint.textContent = 'Imagem obrigatória.';
+      HAS_IMAGE = false;
+      updateSaveState();
     }
 
     /* ========= SALVAR (OBRIGA IMAGEM) ========= */
@@ -311,7 +334,7 @@
 
     async function uploadIfNeeded(docId){
       const file = document.getElementById('iFoto').files?.[0];
-      if(!file) return null; // sem arquivo, não sobe (e validação vai barrar no salvar)
+      if(!file) return null; // sem arquivo, não sobe (e validação vai barrar no salvar em "novo")
       const ext = getExtFromName(file.name || 'jpg');
       const path = `itens/${docId}.${ext}`;
       const ref  = storage.ref(path);
@@ -362,22 +385,16 @@
       const idParam = new URLSearchParams(location.search).get('id');
       const isEdit  = !!idParam;
 
-      // Validação de imagem obrigatória:
-      // - NOVO: sempre precisa ter arquivo em iFoto
-      // - EDIÇÃO: permite salvar se o item já tem imageUrl; se não tiver, exige arquivo
+      // Validação de imagem obrigatória
       let mustHaveFile = false;
-      let currentImageUrl = '';
-
-      if (isEdit) {
-        const snap = await db.collection('itens').doc(idParam).get();
-        currentImageUrl = snap.exists ? (snap.data()?.imageUrl || '') : '';
-        if (!currentImageUrl && !(document.getElementById('iFoto').files?.[0])) {
+      if (!isEdit) {
+        mustHaveFile = !(document.getElementById('iFoto').files?.[0]);
+      } else {
+        const hadPrev = !!document.getElementById('iPreview')?.dataset.hasPrevImage;
+        if (!hadPrev && !(document.getElementById('iFoto').files?.[0])) {
           mustHaveFile = true;
         }
-      } else {
-        if (!(document.getElementById('iFoto').files?.[0])) mustHaveFile = true;
       }
-
       if (mustHaveFile) {
         iMsg.textContent = 'Selecione uma imagem para o item antes de salvar.';
         iMsg.style.color = '#FFD2D2';
@@ -404,13 +421,10 @@
           docId = docRef.id;
         }
 
-        // Upload (somente se tiver arquivo agora; se edição e não trocou, mantém a imagem existente)
+        // Upload (se houver arquivo)
         const url = await uploadIfNeeded(docId);
         if (url){
           await db.collection('itens').doc(docId).update({ imageUrl: url });
-        } else if (!isEdit) {
-          // Novo e ainda assim sem URL (não deveria acontecer por causa da validação)
-          throw new Error('Imagem obrigatória não encontrada.');
         }
 
         iMsg.textContent = isEdit ? 'Item atualizado com sucesso.' : 'Item criado com sucesso.';
@@ -427,7 +441,6 @@
 
     /* ========= START ========= */
     window.addEventListener('firebase-ready', () => {
-
       // Botões imagem
       document.getElementById('iFoto').addEventListener('change', e=>{
         const f = e.target.files?.[0]; handleSelectedFile(f);
@@ -444,27 +457,45 @@
       auth.onAuthStateChanged(async (u)=>{
         if(!u){ location.href='login.html'; return; }
 
+        const id = new URLSearchParams(location.search).get('id');
+        IS_EDIT = !!id;
+
         // combos
         await loadCombos(null);
 
-        // se for edição, preenche e libera salvar sem trocar imagem SE já houver imageUrl
-        const id = new URLSearchParams(location.search).get('id');
-        if (id){
+        if (IS_EDIT){
           const snap = await db.collection('itens').doc(id).get();
           if (snap.exists){
             const pre = snap.data();
-            document.getElementById('iNome').value = pre.nome || '';
-            document.getElementById('iQtd').value = Number(pre.qtd || 0);
-            document.getElementById('iUnidade').value = pre.unidade || '';
-            document.getElementById('iCategoria').value = pre.categoria || '';
-            document.getElementById('iLocal').value = pre.local || '';
-            document.getElementById('iPreview').src = pre.imageUrl || 'img/placeholder.svg';
+            document.getElementById('iNome').value     = pre.nome || '';
+            document.getElementById('iQtd').value      = Number(pre.qtd || 0);
+            document.getElementById('iUnidade').value  = pre.unidade || '';
+            document.getElementById('iCategoria').value= pre.categoria || '';
+            document.getElementById('iLocal').value    = pre.local || '';
+            const preview = document.getElementById('iPreview');
+            if (pre.imageUrl){
+              preview.src = pre.imageUrl;
+              preview.dataset.hasPrevImage = "1"; // marca que já existe imagem no item
+              HAS_IMAGE = false; // ainda não foi anexado novo arquivo, mas pode salvar
+            } else {
+              preview.src = 'img/placeholder.svg';
+              delete preview.dataset.hasPrevImage;
+              HAS_IMAGE = false; // vai exigir arquivo
+            }
             document.getElementById('pageTitle').textContent = 'Editar Estoque';
           } else {
             // item não encontrado — volta
             location.href = 'dashboard.html';
+            return;
           }
+        } else {
+          // novo: sem imagem ainda
+          document.getElementById('iPreview').src = 'img/placeholder.svg';
+          HAS_IMAGE = false;
         }
+
+        // estado inicial do botão
+        updateSaveState();
 
         document.getElementById('formItem').addEventListener('submit', salvarItem);
       });
