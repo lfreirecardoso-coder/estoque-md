@@ -60,37 +60,244 @@
 
       <header class="mb-3">
         <h2 class="page-title mb-1">Cadastro de Estoque</h2>
-        <p class="text-muted">Crie/edite itens do estoque. (Cole aqui o seu formulário e JS específicos desta página.)</p>
+        <p class="text-muted">
+          Preencha os campos. Você pode tirar uma foto pelo celular ou escolher uma imagem.
+          <a class="btn btn-ghost btn-sm ms-1" href="cadastro_base.html">Cadastro Base</a>
+        </p>
       </header>
 
-      <!-- EXEMPLO DE CARD VAZIO (substitua pelo seu conteúdo) -->
       <section class="card p-3">
-        <div class="text-muted">Área de conteúdo do <b>novo.html</b>.</div>
+        <form id="formItem" novalidate>
+          <div class="row g-3">
+            <div class="col-12 col-lg-6">
+              <label for="iNome" class="form-label">Nome *</label>
+              <input id="iNome" type="text" class="form-control" placeholder="Ex.: Fio 2.5 mm" required>
+            </div>
+
+            <div class="col-12 col-lg-6">
+              <label for="iCategoria" class="form-label">Categoria *</label>
+              <select id="iCategoria" class="form-select" required>
+                <option value="">— Selecione —</option>
+              </select>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+              <label for="iQtd" class="form-label">Quantidade *</label>
+              <input id="iQtd" type="number" inputmode="numeric" min="0" step="1" class="form-control" placeholder="Ex.: 10" required>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+              <label for="iUnidade" class="form-label">Unidade *</label>
+              <select id="iUnidade" class="form-select" required>
+                <option value="">— Selecione —</option>
+              </select>
+            </div>
+
+            <div class="col-12 col-lg-6">
+              <label for="iLocal" class="form-label">Local de Armazenamento *</label>
+              <select id="iLocal" class="form-select" required>
+                <option value="">— Selecione —</option>
+              </select>
+            </div>
+
+            <!-- IMAGEM -->
+            <div class="col-12">
+              <label class="form-label">Imagem do Item (opcional)</label>
+              <div class="d-flex gap-3 align-items-start flex-wrap">
+                <img id="iPreview" class="thumb" alt="Pré-visualização" style="width:96px;height:96px;border-radius:12px;border:1px solid var(--border);object-fit:cover"/>
+                <div>
+                  <input id="iFoto" class="d-none" type="file" accept="image/*">
+                  <div class="d-flex flex-wrap gap-2">
+                    <label for="iFoto" class="btn btn-ghost">📂 Escolher arquivo</label>
+                    <button type="button" class="btn btn-ghost" id="btnAbrirCamera">📸 Tirar foto</button>
+                    <button type="button" class="btn btn-danger" id="btnRemoverImg">🗑 Remover imagem</button>
+                  </div>
+                  <div class="text-muted small mt-2">
+                    No celular, “Escolher arquivo” abre câmera ou galeria; “Tirar foto” tenta abrir a câmera direta (quando suportado).
+                  </div>
+                  <div class="text-muted small" id="iUploadInfo" style="margin-top:6px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <input id="iImageUrl" type="hidden">
+          </div>
+
+          <div class="d-flex align-items-center gap-2 mt-3">
+            <button type="submit" class="btn btn-primary" id="btnSalvar">💾 Salvar</button>
+            <a href="dashboard.html" class="btn btn-ghost">Cancelar</a>
+            <span class="text-muted ms-2" id="iMsg"></span>
+          </div>
+        </form>
       </section>
 
     </div>
   </main>
 
+  <!-- MODAL da CÂMERA -->
+  <div class="modal" id="camModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Câmera</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar" id="btnFecharCam"></button>
+        </div>
+        <div class="modal-body">
+          <div class="ratio ratio-4x3" style="background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+            <video id="camVideo" autoplay playsinline></video>
+          </div>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button class="btn btn-ghost" id="btnTrocar">Trocar câmera</button>
+          <button class="btn btn-primary" id="btnCapturar">Capturar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase -->
   <script src="firebase.js?v=20250826"></script>
-  <!-- Sidebar -->
+  <!-- Sidebar unificada -->
   <script src="sidebar.js?v=20250826"></script>
   <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Auth mínimo desta página (mantém padrão de redirecionamento) -->
+  <!-- LÓGICA: mantém seus mesmos IDs e comportamento -->
   <script>
+    // Botão “Sair” do topo
     document.getElementById('btnLogoutTop')?.addEventListener('click', () => {
-      if (window.auth && auth.signOut){
-        auth.signOut().then(()=> location.href='login.html');
-      } else {
-        location.href='login.html';
-      }
+      if (window.auth && auth.signOut){ auth.signOut().then(()=> location.href='login.html'); }
+      else { location.href='login.html'; }
     });
 
+    /* === Combos (categorias/locais/unidades) === */
+    const CFG_COL = 'config';
+    const PLACEHOLDER =
+      'data:image/svg+xml;utf8,' +
+      encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+        <rect width="320" height="320" rx="18" fill="#1f1f1f"/>
+        <g fill="none" stroke="#7c6aa8" stroke-width="10" opacity="0.6">
+          <rect x="60" y="90" width="200" height="140" rx="12"/>
+          <circle cx="120" cy="140" r="22"/>
+          <path d="M90 210l48-48 35 35 25-25 32 38"/>
+        </g>
+      </svg>`);
+
+    function setPlaceholder(){ document.getElementById('iPreview').src = PLACEHOLDER; }
+
+    function fillSelect(sel, arr, selected){
+      sel.innerHTML = '<option value="">— Selecione —</option>';
+      arr.sort((a,b)=>a.localeCompare(b)).forEach(v=>{
+        const o=document.createElement('option');o.value=v;o.textContent=v;
+        if(selected && selected===v) o.selected=true;
+        sel.appendChild(o);
+      });
+    }
+
+    async function getItems(docId, defaults){
+      const ref = db.collection(CFG_COL).doc(docId);
+      const snap = await ref.get();
+      if(!snap.exists){ await ref.set({items: defaults}); return defaults; }
+      return snap.data()?.items || defaults;
+    }
+
+    async function loadCombos(prefill){
+      const [cats,locs,unis] = await Promise.all([
+        getItems('categorias',['Elétrica','Hidráulica','Ferramentas']),
+        getItems('locais',['Depósito','Caixa 1','Caixa 2']),
+        getItems('unidades',['UN','pct','cx','m','cm','mm','kg','g','L','rolo'])
+      ]);
+      fillSelect(document.getElementById('iCategoria'), cats, prefill?.categoria);
+      fillSelect(document.getElementById('iLocal'),     locs, prefill?.local);
+      fillSelect(document.getElementById('iUnidade'),   unis, prefill?.unidade);
+    }
+
+    function handleSelectedFile(file){
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { document.getElementById('iPreview').src = e.target.result; };
+      reader.readAsDataURL(file);
+      const kb = Math.round(file.size/1024);
+      document.getElementById('iUploadInfo').textContent = `Selecionado: ${file.name || 'foto'} (${kb} KB)`;
+    }
+
+    /* === Câmera (desktop+mobile) === */
+    let camStream = null;
+    let usingBack = true;
+    let bsCamModal = null;
+
+    function showCamModal(){
+      if(!bsCamModal){ bsCamModal = new bootstrap.Modal(document.getElementById('camModal')); }
+      bsCamModal.show();
+    }
+    function hideCamModal(){
+      if(bsCamModal){ bsCamModal.hide(); }
+    }
+
+    async function openCamera(){
+      if(!navigator.mediaDevices?.getUserMedia){
+        alert('Navegador não suporta câmera.'); return;
+      }
+      const constraints = { video: { facingMode: usingBack ? { ideal:"environment" } : "user" }, audio:false };
+      try{
+        camStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const video = document.getElementById('camVideo');
+        video.srcObject = camStream;
+        showCamModal();
+      }catch(err){
+        console.error(err);
+        alert('Não foi possível acessar a câmera. Verifique permissões.');
+      }
+    }
+
+    function stopCamera(){
+      if (camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+      hideCamModal();
+    }
+
+    function capturePhoto(){
+      const video = document.getElementById('camVideo');
+      const c = document.createElement('canvas');
+      c.width = video.videoWidth; c.height = video.videoHeight;
+      c.getContext('2d').drawImage(video,0,0,c.width,c.height);
+      c.toBlob(blob=>{
+        const file = new File([blob], `foto_${Date.now()}.jpg`, { type:'image/jpeg' });
+        const dt = new DataTransfer(); dt.items.add(file);
+        const foto = document.getElementById('iFoto'); foto.files = dt.files;
+        handleSelectedFile(file); stopCamera();
+        foto.dispatchEvent(new Event('change',{bubbles:true}));
+      }, 'image/jpeg', .92);
+    }
+
+    function removeImage(){
+      setPlaceholder(); document.getElementById('iFoto').value=""; document.getElementById('iUploadInfo').textContent="";
+    }
+
+    // START
     window.addEventListener('firebase-ready', () => {
-      auth.onAuthStateChanged(u=>{
-        if(!u) location.href = 'login.html';
+      setPlaceholder();
+
+      auth.onAuthStateChanged(async (u)=>{
+        if(!u){ location.href='login.html'; return; }
+
+        const id = new URLSearchParams(location.search).get('id');
+        if(id){
+          const snap = await db.collection('itens').doc(id).get();
+          await loadCombos(snap.exists ? snap.data() : null);
+        }else{
+          await loadCombos(null);
+        }
+
+        document.getElementById('iFoto').addEventListener('change', e=>{
+          const f = e.target.files?.[0]; if(f) handleSelectedFile(f); else setPlaceholder();
+        });
+        document.getElementById('btnAbrirCamera').addEventListener('click', openCamera);
+        document.getElementById('btnFecharCam').addEventListener('click', stopCamera);
+        document.getElementById('btnCapturar').addEventListener('click', capturePhoto);
+        document.getElementById('btnTrocar').addEventListener('click', async ()=>{
+          usingBack = !usingBack; stopCamera(); await openCamera();
+        });
+        document.getElementById('btnRemoverImg').addEventListener('click', removeImage);
       });
     });
   </script>
