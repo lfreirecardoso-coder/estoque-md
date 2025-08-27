@@ -1,0 +1,59 @@
+/* print.css — otimização para exportar em PDF/Impressão */
+
+@media print {
+  /* Remove elementos desnecessários */
+  nav, .sidebar, .toggle-desktop, .offcanvas, .btn, .actions, 
+  #btnCsvMov, #btnPdfMov, #btnClearFiltros {
+    display: none !important;
+  }
+
+  /* Remove bordas e sombras do app */
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Cabeçalho bonito */
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  header h2 {
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+  }
+  header p {
+    font-size: 0.95rem;
+    color: #333 !important;
+  }
+
+  /* Tabela otimizada */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid #444 !important;
+    padding: 6px 8px !important;
+    text-align: left;
+  }
+  th {
+    background: #ddd !important;
+  }
+
+  /* Ajusta badges */
+  .badge-mov {
+    border: 1px solid #444 !important;
+    padding: 2px 6px !important;
+    font-size: 0.8rem !important;
+    color: #000 !important;
+    background: #f2f2f2 !important;
+  }
+}
