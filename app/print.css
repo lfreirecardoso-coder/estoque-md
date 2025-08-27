@@ -1,59 +1,99 @@
-/* print.css — otimização para exportar em PDF/Impressão */
+/* print.css — “Lista” compacta para o PDF/Impressão */
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 10mm;
+}
 
 @media print {
-  /* Remove elementos desnecessários */
-  nav, .sidebar, .toggle-desktop, .offcanvas, .btn, .actions, 
+  /* Traz as cores das células de <th> */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* Some com navegação, botões e tudo que não é a lista */
+  nav, .sidebar, .toggle-desktop, .offcanvas,
+  .btn, .actions, .page-subtitle,
   #btnCsvMov, #btnPdfMov, #btnClearFiltros {
     display: none !important;
   }
 
-  /* Remove bordas e sombras do app */
+  /* Remove o primeiro card (os filtros) — deixa só a tabela */
+  main .card:first-of-type {
+    display: none !important;
+  }
+
+  /* Fundo claro e conteúdo ocupando a página */
   body {
     background: #fff !important;
     color: #000 !important;
   }
-
   .content {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
   }
 
-  /* Cabeçalho bonito */
+  /* Cabeçalho enxuto */
   header {
     text-align: center;
-    margin-bottom: 20px;
+    margin: 0 0 6mm 0 !important;
   }
-  header h2 {
-    font-size: 1.4rem;
-    margin-bottom: 4px;
+  header .page-title, header h2 {
+    font-size: 16pt !important;
+    margin: 0 0 2mm 0 !important;
+    color: #000 !important;
   }
-  header p {
-    font-size: 0.95rem;
-    color: #333 !important;
+  header .text-muted { color: #333 !important; }
+
+  /* Área da tabela “seca” */
+  .table-wrap {
+    border: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
   }
 
-  /* Tabela otimizada */
+  /* Tabela legível e compacta */
   table {
     width: 100% !important;
     border-collapse: collapse !important;
-    font-size: 0.9rem;
+    font-size: 10pt !important;
+    line-height: 1.2 !important;
   }
   th, td {
     border: 1px solid #444 !important;
-    padding: 6px 8px !important;
-    text-align: left;
+    padding: 3px 6px !important;
+    vertical-align: top !important;
   }
   th {
-    background: #ddd !important;
+    background: #eee !important;
+    font-weight: 600 !important;
   }
 
-  /* Ajusta badges */
-  .badge-mov {
+  /* Quebra de linha amigável (e-mails longos, observações, etc.) */
+  th, td { word-break: break-word; }
+
+  /* Se houver miniaturas na tabela, esconda no PDF */
+  .thumb { display: none !important; }
+
+  /* “Badges” Entrada/Saída neutras e pequenas */
+  .badge, .badge-mov {
     border: 1px solid #444 !important;
-    padding: 2px 6px !important;
-    font-size: 0.8rem !important;
+    background: #f7f7f7 !important;
     color: #000 !important;
-    background: #f2f2f2 !important;
+    font-size: 9pt !important;
+    padding: 0 4px !important;
   }
+
+  /* Larguras sugeridas por coluna (ajuste se tiver mais/menos colunas) */
+  /* 1: Data | 2: Item | 3: Tipo | 4: Qtd | 5: Usuário | 6: Obs (se existir) */
+  table thead th:nth-child(1),
+  table tbody td:nth-child(1) { width: 28mm !important; }
+  table thead th:nth-child(3),
+  table tbody td:nth-child(3) { width: 20mm !important; text-align: center !important; }
+  table thead th:nth-child(4),
+  table tbody td:nth-child(4) { width: 14mm !important; text-align: right !important; }
+  table thead th:nth-child(5),
+  table tbody td:nth-child(5) { width: 50mm !important; }
+  /* Se houver “Obs”: */
+  table thead th:nth-child(6),
+  table tbody td:nth-child(6) { width: 60mm !important; }
 }
