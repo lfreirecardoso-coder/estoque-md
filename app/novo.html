@@ -16,6 +16,12 @@
 
   <!-- Tema -->
   <link rel="stylesheet" href="theme.css?v=20250826"/>
+  <style>
+    .upload-status{ font-size:.95rem }
+    .upload-status.ok{ color:#9BE39B }
+    .upload-status.err{ color:#FFD2D2 }
+    .progress{ height:8px }
+  </style>
 </head>
 <body class="app-body">
 
@@ -105,17 +111,23 @@
               <label class="form-label">Imagem do Item (opcional)</label>
               <div class="d-flex gap-3 align-items-start flex-wrap">
                 <img id="iPreview" class="thumb" alt="Pré-visualização" style="width:96px;height:96px;border-radius:12px;border:1px solid var(--border);object-fit:cover"/>
-                <div>
+                <div style="min-width:260px">
                   <input id="iFoto" class="d-none" type="file" accept="image/*">
                   <div class="d-flex flex-wrap gap-2">
                     <label for="iFoto" class="btn btn-ghost">📂 Escolher arquivo</label>
                     <button type="button" class="btn btn-ghost" id="btnAbrirCamera">📸 Tirar foto</button>
                     <button type="button" class="btn btn-danger" id="btnRemoverImg">🗑 Remover imagem</button>
                   </div>
+
                   <div class="text-muted small mt-2">
                     No celular, “Escolher arquivo” abre câmera ou galeria; “Tirar foto” tenta abrir a câmera direta (quando suportado).
                   </div>
-                  <div class="text-muted small" id="iUploadInfo" style="margin-top:6px;"></div>
+
+                  <!-- Status de upload -->
+                  <div class="mt-2">
+                    <div class="progress d-none" id="upBar"><div class="progress-bar" id="upBarFill" style="width:0%"></div></div>
+                    <div class="upload-status" id="iUploadInfo"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -190,7 +202,7 @@
 
     function setPlaceholder(){
       document.getElementById('iPreview').src = PLACEHOLDER;
-      document.getElementById('iUploadInfo').textContent = 'Sem imagem (usando genérica).';
+      setUploadInfo('Sem imagem (usando genérica).', 'muted');
     }
 
     /* ========= Combos (categorias/locais/unidades) ========= */
@@ -224,13 +236,29 @@
     }
 
     /* ========= Upload / Preview ========= */
+    const upBar = document.getElementById('upBar');
+    const upBarFill = document.getElementById('upBarFill');
+    const upInfo = document.getElementById('iUploadInfo');
+
+    function setUploadInfo(text, type){
+      upInfo.textContent = text;
+      upInfo.classList.remove('ok','err');
+      if(type==='ok') upInfo.classList.add('ok');
+      if(type==='err') upInfo.classList.add('err');
+    }
+
+    function showProgress(show){
+      if(show){ upBar.classList.remove('d-none'); }
+      else { upBar.classList.add('d-none'); upBarFill.style.width='0%'; }
+    }
+
     function handleSelectedFile(file){
       if(!file){ setPlaceholder(); return; }
       const reader = new FileReader();
       reader.onload = e => { document.getElementById('iPreview').src = e.target.result; };
       reader.readAsDataURL(file);
       const kb = Math.round(file.size/1024);
-      document.getElementById('iUploadInfo').textContent = `Selecionado: ${file.name || 'foto'} (${kb} KB)`;
+      setUploadInfo(`Selecionado: ${file.name || 'foto'} (${kb} KB)`);
     }
 
     /* ========= Câmera (desktop+mobile) ========= */
@@ -293,11 +321,38 @@
     async function uploadIfNeeded(docId){
       const file = document.getElementById('iFoto').files?.[0];
       if(!file) return null;
+
       const ext = getExtFromName(file.name || 'jpg');
       const path = `itens/${docId}.${ext}`;
       const ref  = storage.ref(path);
-      const snap = await ref.put(file);
-      return await snap.ref.getDownloadURL();
+
+      // garante contentType e mostra progresso
+      const metadata = { contentType: file.type || 'image/jpeg' };
+      showProgress(true);
+      setUploadInfo('Enviando imagem...');
+
+      try{
+        const task = ref.put(file, metadata);
+        return await new Promise((resolve, reject)=>{
+          task.on('state_changed', snap=>{
+            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+            upBarFill.style.width = pct + '%';
+          }, err=>{
+            showProgress(false);
+            setUploadInfo('Falha no upload: ' + (err.message || err.code || 'erro'), 'err');
+            reject(err);
+          }, async ()=>{
+            showProgress(false);
+            const url = await task.snapshot.ref.getDownloadURL();
+            setUploadInfo('Imagem enviada com sucesso.', 'ok');
+            resolve(url);
+          });
+        });
+      }catch(e){
+        showProgress(false);
+        setUploadInfo('Falha no upload: ' + (e.message || e), 'err');
+        return null;
+      }
     }
 
     async function salvarItem(e){
@@ -312,12 +367,12 @@
 
       if(!nome || !categoria || !unidade || !local){
         iMsg.textContent = 'Preencha os campos obrigatórios (*).';
-        iMsg.style.color = '#FFD2D2';
+        iMsg.classList.remove('ok','err'); iMsg.style.color='#FFD2D2';
         return;
       }
 
       const btn = document.getElementById('btnSalvar');
-      btn.disabled = true; iMsg.textContent = 'Salvando...'; iMsg.style.color = '';
+      btn.disabled = true; iMsg.textContent = 'Salvando...'; iMsg.classList.remove('ok','err'); iMsg.style.color='';
 
       try{
         const idParam = new URLSearchParams(location.search).get('id');
@@ -326,34 +381,33 @@
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
+        let docId;
         if(idParam){
-          // EDITAR
           await db.collection('itens').doc(idParam).update(base);
-          const url = await uploadIfNeeded(idParam);
-          if(url){ await db.collection('itens').doc(idParam).update({ imageUrl: url }); }
-          iMsg.textContent = 'Item atualizado com sucesso.';
+          docId = idParam;
         }else{
-          // CRIAR
           base.createdAt = firebase.firestore.FieldValue.serverTimestamp();
           const docRef = await db.collection('itens').add(base);
-          const url = await uploadIfNeeded(docRef.id);
-          if(url){ await docRef.update({ imageUrl: url }); }
-          iMsg.textContent = 'Item criado com sucesso.';
-          // limpa campos (mantém combos)
-          document.getElementById('formItem').reset();
-          setPlaceholder();
+          docId = docRef.id;
         }
 
-        iMsg.style.color = '#9BE39B';
-        // opcional: redireciona pro dashboard depois de 800ms
-        setTimeout(()=>{ location.href='dashboard.html'; }, 800);
+        // tenta upload
+        const url = await uploadIfNeeded(docId);
+        if(url){
+          await db.collection('itens').doc(docId).update({ imageUrl: url });
+        }
+
+        iMsg.textContent = idParam ? 'Item atualizado com sucesso.' : 'Item criado com sucesso.';
+        iMsg.classList.add('ok'); iMsg.style.color='#9BE39B';
+
+        // opcional: redireciona pro dashboard depois de 900ms
+        setTimeout(()=>{ location.href='dashboard.html'; }, 900);
 
       }catch(err){
         console.error(err);
         iMsg.textContent = err.message || 'Erro ao salvar.';
-        iMsg.style.color = '#FFD2D2';
-      }finally{
-        btn.disabled = false;
+        iMsg.classList.add('err'); iMsg.style.color='#FFD2D2';
+        btn.disabled = false; // libera para tentar de novo
       }
     }
 
@@ -385,6 +439,9 @@
           if(pre){
             document.getElementById('iNome').value = pre.nome || '';
             document.getElementById('iQtd').value = Number(pre.qtd || 0);
+            document.getElementById('iUnidade').value = pre.unidade || '';
+            document.getElementById('iCategoria').value = pre.categoria || '';
+            document.getElementById('iLocal').value = pre.local || '';
             document.getElementById('iPreview').src = pre.imageUrl || PLACEHOLDER;
           }
         }else{
