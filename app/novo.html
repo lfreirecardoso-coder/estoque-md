@@ -162,7 +162,7 @@
   <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- LÓGICA: mantém seus mesmos IDs e comportamento -->
+  <!-- LÓGICA -->
   <script>
     // Botão “Sair” do topo
     document.getElementById('btnLogoutTop')?.addEventListener('click', () => {
@@ -170,20 +170,31 @@
       else { location.href='login.html'; }
     });
 
-    /* === Combos (categorias/locais/unidades) === */
-    const CFG_COL = 'config';
+    /* ========= Placeholder (imagem genérica) ========= */
     const PLACEHOLDER =
       'data:image/svg+xml;utf8,' +
       encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
-        <rect width="320" height="320" rx="18" fill="#1f1f1f"/>
-        <g fill="none" stroke="#7c6aa8" stroke-width="10" opacity="0.6">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1d1414"/>
+            <stop offset="1" stop-color="#2a1717"/>
+          </linearGradient>
+        </defs>
+        <rect width="320" height="320" rx="18" fill="url(#g)"/>
+        <g fill="none" stroke="#9e8bd1" stroke-width="10" opacity="0.65">
           <rect x="60" y="90" width="200" height="140" rx="12"/>
           <circle cx="120" cy="140" r="22"/>
           <path d="M90 210l48-48 35 35 25-25 32 38"/>
         </g>
       </svg>`);
 
-    function setPlaceholder(){ document.getElementById('iPreview').src = PLACEHOLDER; }
+    function setPlaceholder(){
+      document.getElementById('iPreview').src = PLACEHOLDER;
+      document.getElementById('iUploadInfo').textContent = 'Sem imagem (usando genérica).';
+    }
+
+    /* ========= Combos (categorias/locais/unidades) ========= */
+    const CFG_COL = 'config';
 
     function fillSelect(sel, arr, selected){
       sel.innerHTML = '<option value="">— Selecione —</option>';
@@ -212,8 +223,9 @@
       fillSelect(document.getElementById('iUnidade'),   unis, prefill?.unidade);
     }
 
+    /* ========= Upload / Preview ========= */
     function handleSelectedFile(file){
-      if(!file) return;
+      if(!file){ setPlaceholder(); return; }
       const reader = new FileReader();
       reader.onload = e => { document.getElementById('iPreview').src = e.target.result; };
       reader.readAsDataURL(file);
@@ -221,7 +233,7 @@
       document.getElementById('iUploadInfo').textContent = `Selecionado: ${file.name || 'foto'} (${kb} KB)`;
     }
 
-    /* === Câmera (desktop+mobile) === */
+    /* ========= Câmera (desktop+mobile) ========= */
     let camStream = null;
     let usingBack = true;
     let bsCamModal = null;
@@ -270,34 +282,116 @@
     }
 
     function removeImage(){
-      setPlaceholder(); document.getElementById('iFoto').value=""; document.getElementById('iUploadInfo').textContent="";
+      setPlaceholder();
+      const f = document.getElementById('iFoto');
+      f.value="";
     }
 
-    // START
-    window.addEventListener('firebase-ready', () => {
-      setPlaceholder();
+    /* ========= SALVAR (CRIAR/EDITAR) ========= */
+    function getExtFromName(name){ const p=name.lastIndexOf('.'); return p>0 ? name.slice(p+1).toLowerCase() : 'jpg'; }
 
+    async function uploadIfNeeded(docId){
+      const file = document.getElementById('iFoto').files?.[0];
+      if(!file) return null;
+      const ext = getExtFromName(file.name || 'jpg');
+      const path = `itens/${docId}.${ext}`;
+      const ref  = storage.ref(path);
+      const snap = await ref.put(file);
+      return await snap.ref.getDownloadURL();
+    }
+
+    async function salvarItem(e){
+      e.preventDefault();
+      const iMsg = document.getElementById('iMsg');
+
+      const nome     = document.getElementById('iNome').value.trim();
+      const categoria= document.getElementById('iCategoria').value.trim();
+      const qtd      = Number(document.getElementById('iQtd').value || 0);
+      const unidade  = document.getElementById('iUnidade').value.trim();
+      const local    = document.getElementById('iLocal').value.trim();
+
+      if(!nome || !categoria || !unidade || !local){
+        iMsg.textContent = 'Preencha os campos obrigatórios (*).';
+        iMsg.style.color = '#FFD2D2';
+        return;
+      }
+
+      const btn = document.getElementById('btnSalvar');
+      btn.disabled = true; iMsg.textContent = 'Salvando...'; iMsg.style.color = '';
+
+      try{
+        const idParam = new URLSearchParams(location.search).get('id');
+        const base = {
+          nome, categoria, qtd, unidade, local,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if(idParam){
+          // EDITAR
+          await db.collection('itens').doc(idParam).update(base);
+          const url = await uploadIfNeeded(idParam);
+          if(url){ await db.collection('itens').doc(idParam).update({ imageUrl: url }); }
+          iMsg.textContent = 'Item atualizado com sucesso.';
+        }else{
+          // CRIAR
+          base.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+          const docRef = await db.collection('itens').add(base);
+          const url = await uploadIfNeeded(docRef.id);
+          if(url){ await docRef.update({ imageUrl: url }); }
+          iMsg.textContent = 'Item criado com sucesso.';
+          // limpa campos (mantém combos)
+          document.getElementById('formItem').reset();
+          setPlaceholder();
+        }
+
+        iMsg.style.color = '#9BE39B';
+        // opcional: redireciona pro dashboard depois de 800ms
+        setTimeout(()=>{ location.href='dashboard.html'; }, 800);
+
+      }catch(err){
+        console.error(err);
+        iMsg.textContent = err.message || 'Erro ao salvar.';
+        iMsg.style.color = '#FFD2D2';
+      }finally{
+        btn.disabled = false;
+      }
+    }
+
+    /* ========= START ========= */
+    window.addEventListener('firebase-ready', () => {
+      setPlaceholder(); // começa com imagem genérica
+
+      // Botões imagem
+      document.getElementById('iFoto').addEventListener('change', e=>{
+        const f = e.target.files?.[0]; if(f) handleSelectedFile(f); else setPlaceholder();
+      });
+      document.getElementById('btnAbrirCamera').addEventListener('click', openCamera);
+      document.getElementById('btnFecharCam').addEventListener('click', stopCamera);
+      document.getElementById('btnCapturar').addEventListener('click', capturePhoto);
+      document.getElementById('btnTrocar').addEventListener('click', async ()=>{
+        usingBack = !usingBack; stopCamera(); await openCamera();
+      });
+      document.getElementById('btnRemoverImg').addEventListener('click', removeImage);
+
+      // Auth + combos + preencher se editar + submit
       auth.onAuthStateChanged(async (u)=>{
         if(!u){ location.href='login.html'; return; }
 
         const id = new URLSearchParams(location.search).get('id');
         if(id){
           const snap = await db.collection('itens').doc(id).get();
-          await loadCombos(snap.exists ? snap.data() : null);
+          const pre = snap.exists ? snap.data() : null;
+          await loadCombos(pre);
+          if(pre){
+            document.getElementById('iNome').value = pre.nome || '';
+            document.getElementById('iQtd').value = Number(pre.qtd || 0);
+            document.getElementById('iPreview').src = pre.imageUrl || PLACEHOLDER;
+          }
         }else{
           await loadCombos(null);
         }
 
-        document.getElementById('iFoto').addEventListener('change', e=>{
-          const f = e.target.files?.[0]; if(f) handleSelectedFile(f); else setPlaceholder();
-        });
-        document.getElementById('btnAbrirCamera').addEventListener('click', openCamera);
-        document.getElementById('btnFecharCam').addEventListener('click', stopCamera);
-        document.getElementById('btnCapturar').addEventListener('click', capturePhoto);
-        document.getElementById('btnTrocar').addEventListener('click', async ()=>{
-          usingBack = !usingBack; stopCamera(); await openCamera();
-        });
-        document.getElementById('btnRemoverImg').addEventListener('click', removeImage);
+        document.getElementById('formItem').addEventListener('submit', salvarItem);
       });
     });
   </script>
