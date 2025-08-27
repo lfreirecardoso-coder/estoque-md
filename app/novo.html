@@ -21,6 +21,7 @@
     .upload-status.ok{ color:#9BE39B }
     .upload-status.err{ color:#FFD2D2 }
     .progress{ height:8px }
+    .photo-note{ font-size:.9rem; color:var(--muted); }
   </style>
 </head>
 <body class="app-body">
@@ -33,7 +34,7 @@
         <span class="hamburger"></span>
       </button>
 
-      <a class="navbar-brand ms-2" href="#">Estoque -MD-</a>
+      <a class="navbar-brand ms-2" href="dashboard.html">Estoque -MD-</a>
 
       <div class="ms-auto">
         <button class="btn btn-logout-top" id="btnLogoutTop">Sair</button>
@@ -65,9 +66,9 @@
     <div class="container-fluid">
 
       <header class="mb-3">
-        <h2 class="page-title mb-1">Cadastro de Estoque</h2>
+        <h2 class="page-title mb-1" id="pageTitle">Cadastro de Estoque</h2>
         <p class="text-muted">
-          Preencha os campos. Você pode tirar uma foto pelo celular ou escolher uma imagem.
+          Preencha os campos. <b>Imagem obrigatória</b> (arquivo ou câmera).
           <a class="btn btn-ghost btn-sm ms-1" href="cadastro_base.html">Cadastro Base</a>
         </p>
       </header>
@@ -106,11 +107,13 @@
               </select>
             </div>
 
-            <!-- IMAGEM -->
+            <!-- IMAGEM (OBRIGATÓRIA) -->
             <div class="col-12">
-              <label class="form-label">Imagem do Item (opcional)</label>
+              <label class="form-label">Imagem do Item *</label>
               <div class="d-flex gap-3 align-items-start flex-wrap">
-                <img id="iPreview" class="thumb" alt="Pré-visualização" style="width:96px;height:96px;border-radius:12px;border:1px solid var(--border);object-fit:cover"/>
+                <!-- preview inicial só para UX; não vale como imagem enviada -->
+                <img id="iPreview" class="thumb" alt="Pré-visualização" src="img/placeholder.svg"
+                     style="width:96px;height:96px;border-radius:12px;border:1px solid var(--border);object-fit:cover"/>
                 <div style="min-width:260px">
                   <input id="iFoto" class="d-none" type="file" accept="image/*">
                   <div class="d-flex flex-wrap gap-2">
@@ -119,8 +122,8 @@
                     <button type="button" class="btn btn-danger" id="btnRemoverImg">🗑 Remover imagem</button>
                   </div>
 
-                  <div class="text-muted small mt-2">
-                    No celular, “Escolher arquivo” abre câmera ou galeria; “Tirar foto” tenta abrir a câmera direta (quando suportado).
+                  <div class="photo-note mt-2" id="imgHint">
+                    Selecione um arquivo ou tire uma foto. A imagem é obrigatória para salvar.
                   </div>
 
                   <!-- Status de upload -->
@@ -182,29 +185,6 @@
       else { location.href='login.html'; }
     });
 
-    /* ========= Placeholder (imagem genérica) ========= */
-    const PLACEHOLDER =
-      'data:image/svg+xml;utf8,' +
-      encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#1d1414"/>
-            <stop offset="1" stop-color="#2a1717"/>
-          </linearGradient>
-        </defs>
-        <rect width="320" height="320" rx="18" fill="url(#g)"/>
-        <g fill="none" stroke="#9e8bd1" stroke-width="10" opacity="0.65">
-          <rect x="60" y="90" width="200" height="140" rx="12"/>
-          <circle cx="120" cy="140" r="22"/>
-          <path d="M90 210l48-48 35 35 25-25 32 38"/>
-        </g>
-      </svg>`);
-
-    function setPlaceholder(){
-      document.getElementById('iPreview').src = PLACEHOLDER;
-      setUploadInfo('Sem imagem (usando genérica).', 'muted');
-    }
-
     /* ========= Combos (categorias/locais/unidades) ========= */
     const CFG_COL = 'config';
 
@@ -239,6 +219,7 @@
     const upBar = document.getElementById('upBar');
     const upBarFill = document.getElementById('upBarFill');
     const upInfo = document.getElementById('iUploadInfo');
+    const imgHint = document.getElementById('imgHint');
 
     function setUploadInfo(text, type){
       upInfo.textContent = text;
@@ -253,15 +234,23 @@
     }
 
     function handleSelectedFile(file){
-      if(!file){ setPlaceholder(); return; }
+      const preview = document.getElementById('iPreview');
+      if(!file){
+        // volta para placeholder visual, mas continua obrigatório anexar arquivo
+        preview.src = 'img/placeholder.svg';
+        setUploadInfo('Nenhum arquivo selecionado. Imagem é obrigatória.', 'err');
+        imgHint.textContent = 'Selecione um arquivo ou use a câmera.';
+        return;
+      }
       const reader = new FileReader();
-      reader.onload = e => { document.getElementById('iPreview').src = e.target.result; };
+      reader.onload = e => { preview.src = e.target.result; };
       reader.readAsDataURL(file);
       const kb = Math.round(file.size/1024);
-      setUploadInfo(`Selecionado: ${file.name || 'foto'} (${kb} KB)`);
+      setUploadInfo(`Selecionado: ${file.name || 'foto'} (${kb} KB)`, 'ok');
+      imgHint.textContent = '';
     }
 
-    /* ========= Câmera (desktop+mobile) ========= */
+    /* ========= Câmera ========= */
     let camStream = null;
     let usingBack = true;
     let bsCamModal = null;
@@ -310,27 +299,26 @@
     }
 
     function removeImage(){
-      setPlaceholder();
       const f = document.getElementById('iFoto');
       f.value="";
+      document.getElementById('iPreview').src = 'img/placeholder.svg';
+      setUploadInfo('Imagem removida. Selecione outra antes de salvar.', 'err');
+      imgHint.textContent = 'Imagem obrigatória.';
     }
 
-    /* ========= SALVAR (CRIAR/EDITAR) ========= */
+    /* ========= SALVAR (OBRIGA IMAGEM) ========= */
     function getExtFromName(name){ const p=name.lastIndexOf('.'); return p>0 ? name.slice(p+1).toLowerCase() : 'jpg'; }
 
     async function uploadIfNeeded(docId){
       const file = document.getElementById('iFoto').files?.[0];
-      if(!file) return null;
-
+      if(!file) return null; // sem arquivo, não sobe (e validação vai barrar no salvar)
       const ext = getExtFromName(file.name || 'jpg');
       const path = `itens/${docId}.${ext}`;
       const ref  = storage.ref(path);
-
-      // garante contentType e mostra progresso
       const metadata = { contentType: file.type || 'image/jpeg' };
+
       showProgress(true);
       setUploadInfo('Enviando imagem...');
-
       try{
         const task = ref.put(file, metadata);
         return await new Promise((resolve, reject)=>{
@@ -367,57 +355,82 @@
 
       if(!nome || !categoria || !unidade || !local){
         iMsg.textContent = 'Preencha os campos obrigatórios (*).';
-        iMsg.classList.remove('ok','err'); iMsg.style.color='#FFD2D2';
+        iMsg.style.color='#FFD2D2';
+        return;
+      }
+
+      const idParam = new URLSearchParams(location.search).get('id');
+      const isEdit  = !!idParam;
+
+      // Validação de imagem obrigatória:
+      // - NOVO: sempre precisa ter arquivo em iFoto
+      // - EDIÇÃO: permite salvar se o item já tem imageUrl; se não tiver, exige arquivo
+      let mustHaveFile = false;
+      let currentImageUrl = '';
+
+      if (isEdit) {
+        const snap = await db.collection('itens').doc(idParam).get();
+        currentImageUrl = snap.exists ? (snap.data()?.imageUrl || '') : '';
+        if (!currentImageUrl && !(document.getElementById('iFoto').files?.[0])) {
+          mustHaveFile = true;
+        }
+      } else {
+        if (!(document.getElementById('iFoto').files?.[0])) mustHaveFile = true;
+      }
+
+      if (mustHaveFile) {
+        iMsg.textContent = 'Selecione uma imagem para o item antes de salvar.';
+        iMsg.style.color = '#FFD2D2';
+        setUploadInfo('Imagem obrigatória.', 'err');
         return;
       }
 
       const btn = document.getElementById('btnSalvar');
-      btn.disabled = true; iMsg.textContent = 'Salvando...'; iMsg.classList.remove('ok','err'); iMsg.style.color='';
+      btn.disabled = true; iMsg.textContent = 'Salvando...'; iMsg.style.color='';
 
       try{
-        const idParam = new URLSearchParams(location.search).get('id');
         const base = {
           nome, categoria, qtd, unidade, local,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         let docId;
-        if(idParam){
-          await db.collection('itens').doc(idParam).update(base);
+        if (isEdit){
+          await db.collection('itens').doc(idParam).set(base, { merge:true });
           docId = idParam;
-        }else{
+        } else {
           base.createdAt = firebase.firestore.FieldValue.serverTimestamp();
           const docRef = await db.collection('itens').add(base);
           docId = docRef.id;
         }
 
-        // tenta upload
+        // Upload (somente se tiver arquivo agora; se edição e não trocou, mantém a imagem existente)
         const url = await uploadIfNeeded(docId);
-        if(url){
+        if (url){
           await db.collection('itens').doc(docId).update({ imageUrl: url });
+        } else if (!isEdit) {
+          // Novo e ainda assim sem URL (não deveria acontecer por causa da validação)
+          throw new Error('Imagem obrigatória não encontrada.');
         }
 
-        iMsg.textContent = idParam ? 'Item atualizado com sucesso.' : 'Item criado com sucesso.';
-        iMsg.classList.add('ok'); iMsg.style.color='#9BE39B';
+        iMsg.textContent = isEdit ? 'Item atualizado com sucesso.' : 'Item criado com sucesso.';
+        iMsg.style.color = '#9BE39B';
 
-        // opcional: redireciona pro dashboard depois de 900ms
         setTimeout(()=>{ location.href='dashboard.html'; }, 900);
-
       }catch(err){
         console.error(err);
         iMsg.textContent = err.message || 'Erro ao salvar.';
-        iMsg.classList.add('err'); iMsg.style.color='#FFD2D2';
-        btn.disabled = false; // libera para tentar de novo
+        iMsg.style.color = '#FFD2D2';
+        btn.disabled = false;
       }
     }
 
     /* ========= START ========= */
     window.addEventListener('firebase-ready', () => {
-      setPlaceholder(); // começa com imagem genérica
 
       // Botões imagem
       document.getElementById('iFoto').addEventListener('change', e=>{
-        const f = e.target.files?.[0]; if(f) handleSelectedFile(f); else setPlaceholder();
+        const f = e.target.files?.[0]; handleSelectedFile(f);
       });
       document.getElementById('btnAbrirCamera').addEventListener('click', openCamera);
       document.getElementById('btnFecharCam').addEventListener('click', stopCamera);
@@ -431,21 +444,26 @@
       auth.onAuthStateChanged(async (u)=>{
         if(!u){ location.href='login.html'; return; }
 
+        // combos
+        await loadCombos(null);
+
+        // se for edição, preenche e libera salvar sem trocar imagem SE já houver imageUrl
         const id = new URLSearchParams(location.search).get('id');
-        if(id){
+        if (id){
           const snap = await db.collection('itens').doc(id).get();
-          const pre = snap.exists ? snap.data() : null;
-          await loadCombos(pre);
-          if(pre){
+          if (snap.exists){
+            const pre = snap.data();
             document.getElementById('iNome').value = pre.nome || '';
             document.getElementById('iQtd').value = Number(pre.qtd || 0);
             document.getElementById('iUnidade').value = pre.unidade || '';
             document.getElementById('iCategoria').value = pre.categoria || '';
             document.getElementById('iLocal').value = pre.local || '';
-            document.getElementById('iPreview').src = pre.imageUrl || PLACEHOLDER;
+            document.getElementById('iPreview').src = pre.imageUrl || 'img/placeholder.svg';
+            document.getElementById('pageTitle').textContent = 'Editar Estoque';
+          } else {
+            // item não encontrado — volta
+            location.href = 'dashboard.html';
           }
-        }else{
-          await loadCombos(null);
         }
 
         document.getElementById('formItem').addEventListener('submit', salvarItem);
