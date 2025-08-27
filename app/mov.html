@@ -1,100 +1,160 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Log de Movimentações | MD Estoque</title>
+  <title>Estoque | Log de Movimentações</title>
+
+  <!-- Favicons -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="favicon.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+  <meta name="theme-color" content="#1a0e0e">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Tema -->
   <link rel="stylesheet" href="theme.css"/>
+
   <style>
     /* Badges Entrada/Saída */
-    .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:600}
-    .badge.in  {background:#5b4bff1a;color:#b9b4ff;border:1px solid #6f63ff44}
-    .badge.out {background:#ff5b6c1a;color:#ffb7bf;border:1px solid #ff7e8b44}
-    /* Estados */
-    .state {opacity:.85;padding:14px;border-radius:10px;border:1px dashed var(--border)}
+    .badge-mov{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:600}
+    .badge-mov.in  {background:#5b4bff1a;color:#b9b4ff;border:1px solid #6f63ff44}
+    .badge-mov.out {background:#ff5b6c1a;color:#ffb7bf;border:1px solid #ff7e8b44}
+
+    /* Estado de carregamento/erro */
+    .state {opacity:.9;padding:14px;border-radius:10px;border:1px dashed var(--border); background: var(--panel); color: var(--txt)}
     .state.center {text-align:center}
   </style>
 </head>
-<body>
-  <div class="layout">
-    <!-- Sidebar unificada -->
-    <aside class="sidebar" data-sidebar></aside>
+<body class="app-body">
 
-    <!-- Conteúdo -->
-    <main class="content" id="page-mov">
-      <header class="page-header">
-        <h2 class="page-title">Log de Movimentações</h2>
-        <p class="page-subtitle">
-          Histórico de <strong>entradas</strong> e <strong>saídas</strong>. Use os filtros para localizar.
+  <!-- NAVBAR (topo) -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container-fluid">
+      <!-- Botão menu (mobile) -->
+      <button class="btn-menu d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu" aria-label="Abrir menu">
+        <span class="hamburger"></span>
+      </button>
+
+      <a class="navbar-brand ms-2" href="#">Estoque -MD-</a>
+
+      <div class="ms-auto">
+        <button class="btn btn-logout-top" id="btnLogoutTop">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR (desktop) -->
+  <aside class="sidebar d-none d-lg-block" id="sidebar">
+    <div class="p-3" data-sidebar-content></div>
+  </aside>
+
+  <!-- Botão colapso (desktop) -->
+  <button class="btn-menu toggle-desktop d-none d-lg-inline-flex" id="toggleDesktop" title="Colapsar/Expandir menu">
+    <span class="hamburger"></span>
+  </button>
+
+  <!-- OFFCANVAS (mobile) -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="offcanvasMenuLabel">Menu</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+    </div>
+    <div class="offcanvas-body" id="offcanvasMenuBody"><!-- sidebar.js injeta aqui --></div>
+  </div>
+
+  <!-- CONTEÚDO -->
+  <main class="content">
+    <div class="container-fluid">
+
+      <header class="mb-3">
+        <h2 class="page-title mb-1">Log de Movimentações</h2>
+        <p class="text-muted">
+          Histórico de <b>entradas</b> e <b>saídas</b>. Use os filtros para localizar.
         </p>
       </header>
 
-      <!-- Filtros -->
-      <section class="card flat">
-        <div class="grid-3">
-          <div class="field">
-            <label for="fItem">Filtrar por item</label>
-            <input id="fItem" placeholder="Ex.: Fio, Cabo...">
+      <!-- FILTROS -->
+      <section class="card p-3 mb-3">
+        <div class="row g-3">
+          <div class="col-12 col-lg-3">
+            <label for="fItem" class="form-label">Filtrar por item</label>
+            <input id="fItem" class="form-control" placeholder="Ex.: Fio, Cabo...">
           </div>
 
-          <div class="field">
-            <label for="fTipo">Tipo</label>
-            <select id="fTipo">
+          <div class="col-6 col-lg-2">
+            <label for="fTipo" class="form-label">Tipo</label>
+            <select id="fTipo" class="form-select">
               <option value="">Todos</option>
               <option value="entrada">Entrada</option>
               <option value="saida">Saída</option>
             </select>
           </div>
 
-          <div class="field">
-            <label for="fUsuario">Usuário</label>
-            <input id="fUsuario" placeholder="Ex.: João, Maria...">
+          <div class="col-12 col-lg-3">
+            <label for="fUsuario" class="form-label">Usuário</label>
+            <input id="fUsuario" class="form-control" placeholder="E-mail ou nome">
           </div>
 
-          <div class="field">
-            <label for="fDataDe">Data (de)</label>
-            <input id="fDataDe" type="date">
+          <div class="col-6 col-lg-2">
+            <label for="fDataDe" class="form-label">Data (de)</label>
+            <input id="fDataDe" type="date" class="form-control">
           </div>
 
-          <div class="field">
-            <label for="fDataAte">Data (até)</label>
-            <input id="fDataAte" type="date">
+          <div class="col-6 col-lg-2">
+            <label for="fDataAte" class="form-label">Data (até)</label>
+            <input id="fDataAte" type="date" class="form-control">
           </div>
         </div>
 
-        <div class="actions">
+        <div class="d-flex gap-2 mt-3">
           <button type="button" class="btn btn-ghost" id="btnCsvMov">Exportar CSV</button>
           <button type="button" class="btn btn-ghost" id="btnPdfMov">Exportar PDF</button>
           <button type="button" class="btn btn-ghost" id="btnClearFiltros">Limpar Filtros</button>
         </div>
       </section>
 
-      <!-- Tabela -->
-      <section class="table-wrap">
+      <!-- TABELA -->
+      <section class="table-wrap p-2">
         <div id="stateBox" class="state center">Carregando movimentações…</div>
-        <table id="tblMovs" style="display:none">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Item</th>
-              <th>Tipo</th>
-              <th>Qtd</th>
-              <th>Usuário</th>
-              <th>Obs.</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </section>
-    </main>
-  </div>
 
-  <!-- scripts base -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" id="tblMovs" style="display:none">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Item</th>
+                <th>Tipo</th>
+                <th>Qtd</th>
+                <th>Usuário</th>
+                <th>Obs.</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Firebase + Sidebar -->
   <script src="firebase.js"></script>
   <script src="sidebar.js"></script>
 
-  <!-- lógica da página -->
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Lógica -->
   <script>
+    // Botão “Sair” do topo
+    document.getElementById('btnLogoutTop')?.addEventListener('click', () => {
+      if (window.auth && auth.signOut){ auth.signOut().then(()=> location.href='login.html'); }
+      else { location.href='login.html'; }
+    });
+
     const $  = s => document.querySelector(s);
     const $$ = s => Array.from(document.querySelectorAll(s));
 
@@ -105,7 +165,7 @@
     const fDataAte = $('#fDataAte');
 
     const stateBox = $('#stateBox');
-    const table    = $('#tblMovs');
+    const tableEl  = $('#tblMovs');
     const tbody    = $('#tblMovs tbody');
 
     let MOV_CACHE = [];
@@ -146,7 +206,7 @@
       });
 
       if (rows.length === 0) {
-        table.style.display = 'none';
+        tableEl.style.display = 'none';
         stateBox.style.display = 'block';
         stateBox.textContent = 'Nenhuma movimentação encontrada.';
         return;
@@ -155,16 +215,16 @@
       tbody.innerHTML = rows.map(m=>`
         <tr>
           <td>${fmtDate(m.data)}</td>
-          <td>${m.itemNome || '—'}</td>
-          <td><span class="badge ${m.tipo==='entrada'?'in':'out'}">${m.tipo==='entrada'?'Entrada':'Saída'}</span></td>
-          <td>${m.qtd}</td>
-          <td>${m.usuarioNome || m.usuario || '—'}</td>
+          <td>${(m.itemNome || '—').replace(/</g,'&lt;')}</td>
+          <td><span class="badge-mov ${m.tipo==='entrada'?'in':'out'}">${m.tipo==='entrada'?'Entrada':'Saída'}</span></td>
+          <td>${Number(m.qtd || 0)}</td>
+          <td>${(m.usuarioNome || m.usuario || '—').replace(/</g,'&lt;')}</td>
           <td>${m.obs ? m.obs.replace(/</g,'&lt;') : ''}</td>
         </tr>
       `).join('');
 
       stateBox.style.display = 'none';
-      table.style.display = '';
+      tableEl.style.display = '';
     }
 
     function clearFiltros(){
@@ -177,7 +237,7 @@
     }
 
     function exportCSV(e){
-      e.preventDefault();
+      e?.preventDefault?.();
       const ths = $$('#tblMovs thead th').map(th=>th.textContent.trim());
       const trs = Array.from(tbody.querySelectorAll('tr')).map(tr =>
         Array.from(tr.children).map(td => '"' + (td.textContent||'').replaceAll('"','""') + '"').join(',')
@@ -190,10 +250,10 @@
       a.click();
     }
 
-    function exportPDF(e){ e.preventDefault(); window.print(); }
+    function exportPDF(e){ e?.preventDefault?.(); window.print(); }
 
     function watchMovs(){
-      // requer que os docs tenham o campo "data" (Timestamp)
+      // requer campo "data" (Timestamp) nos docs
       db.collection('movimentacoes').orderBy('data','desc').limit(800).onSnapshot(snap=>{
         MOV_CACHE = [];
         snap.forEach(doc => MOV_CACHE.push({ id:doc.id, ...doc.data() }));
@@ -201,7 +261,7 @@
           FIRST_SNAPSHOT = false;
           if (MOV_CACHE.length === 0) {
             stateBox.textContent = 'Nenhuma movimentação encontrada.';
-            table.style.display = 'none';
+            tableEl.style.display = 'none';
             stateBox.style.display = 'block';
             return;
           }
@@ -209,7 +269,7 @@
         render();
       }, err=>{
         console.error(err);
-        table.style.display = 'none';
+        tableEl.style.display = 'none';
         stateBox.style.display = 'block';
         stateBox.textContent = 'Erro ao carregar: ' + (err.message || err);
       });
